@@ -8,13 +8,13 @@
  * Author URI: https://petanco.net
  * License: GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Text Domain: petanco-flamingo-api
+ * Text Domain: petanco-to-flamingo
  *
  * このプラグインは、PetancoのシステムからのAPIリクエストを受け取り、
  * 送信されたデータをFlamingoに保存します。また、Webhook通知、
  * レート制限、認証機能も提供します。
  *
- * @package Flamingo_API_Extension_for_Petanco
+ * @package Petanco_to_Flamingo
  */
 
 // 直接アクセスされた場合は終了します。
@@ -439,8 +439,8 @@ function petanco_api_sanitize_settings($input) {
 	$sanitized_input['rate_limit'] = absint($input['rate_limit']);
 
 	// Webhook URLのサニタイズとバリデーション
-	$sanitized_input['success_webhook'] = esc_url_raw($input['success_webhook']);
-	$sanitized_input['failure_webhook'] = esc_url_raw($input['failure_webhook']);
+	// $sanitized_input['success_webhook'] = esc_url_raw($input['success_webhook']);
+	// $sanitized_input['failure_webhook'] = esc_url_raw($input['failure_webhook']);
 
 	if (!empty($sanitized_input['success_webhook']) && !wp_http_validate_url($sanitized_input['success_webhook'])) {
 		add_settings_error('petanco_api_settings', 'invalid_success_webhook', __('無効な成功時Webhook URLです。', 'petanco-flamingo-api'));
