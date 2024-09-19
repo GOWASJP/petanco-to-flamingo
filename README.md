@@ -160,7 +160,7 @@ const handleSubmit = () => {
     address2: "サンプルビル101",
     campaign_id: "CAMP001",
     benefit_id: "BENEFIT001",
-    player_i": "PLAYER004",
+    player_id": "PLAYER004",
   };
   submitForm(formData);
 };
