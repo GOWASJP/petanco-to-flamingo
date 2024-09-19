@@ -61,7 +61,8 @@
     "address1": "住所1",
     "address2": "住所2",
     "campaign_id": "キャンペーンID",
-    "benefit_id": "特典ID"
+    "benefit_id": "特典ID",
+    "player_id": "プレイヤーID"
   }
   ```
 
@@ -117,7 +118,8 @@ curl -X POST \
     "address1": "丸の内1-1-1",
     "address2": "サンプルビル101",
     "campaign_id": "CAMP001",
-    "benefit_id": "BENEFIT001"
+    "benefit_id": "BENEFIT001",
+    "player_id": "PLAYER004"
   }'
 ```
 
@@ -158,6 +160,7 @@ const handleSubmit = () => {
     address2: "サンプルビル101",
     campaign_id: "CAMP001",
     benefit_id: "BENEFIT001",
+    player_id": "PLAYER004",
   };
   submitForm(formData);
 };
