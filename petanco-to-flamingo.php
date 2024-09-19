@@ -459,13 +459,13 @@ function petanco_api_sanitize_settings($input) {
 	// $sanitized_input['success_webhook'] = esc_url_raw($input['success_webhook']);
 	// $sanitized_input['failure_webhook'] = esc_url_raw($input['failure_webhook']);
 
-	if (!empty($sanitized_input['success_webhook']) && !wp_http_validate_url($sanitized_input['success_webhook'])) {
-		add_settings_error('petanco_api_settings', 'invalid_success_webhook', __('無効な成功時Webhook URLです。', 'petanco-to-flamingo'));
-	}
+	// if (!empty($sanitized_input['success_webhook']) && !wp_http_validate_url($sanitized_input['success_webhook'])) {
+	// 	add_settings_error('petanco_api_settings', 'invalid_success_webhook', __('無効な成功時Webhook URLです。', 'petanco-to-flamingo'));
+	// }
 
-	if (!empty($sanitized_input['failure_webhook']) && !wp_http_validate_url($sanitized_input['failure_webhook'])) {
-		add_settings_error('petanco_api_settings', 'invalid_failure_webhook', __('無効な失敗時Webhook URLです。', 'petanco-to-flamingo'));
-	}
+	// if (!empty($sanitized_input['failure_webhook']) && !wp_http_validate_url($sanitized_input['failure_webhook'])) {
+	// 	add_settings_error('petanco_api_settings', 'invalid_failure_webhook', __('無効な失敗時Webhook URLです。', 'petanco-to-flamingo'));
+	// }
 
 	return $sanitized_input;
 }
