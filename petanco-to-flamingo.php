@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: Plugin to connect Petanco to Flamingo
+ * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
  * Version: 1.0.3
