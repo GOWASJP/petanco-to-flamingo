@@ -160,14 +160,14 @@ function petanco_api_handle_submission($request) {
 		$response->set_headers(array('Cache-Control' => 'no-cache, no-store, must-revalidate'));
 
 		// 成功時のWebhookを呼び出し
-		petanco_api_call_webhook('success', $submission->id());
+		// petanco_api_call_webhook('success', $submission->id());
 
 		return $response;
 	} else {
 		petanco_api_debug_log(__('Failed to save submission', 'petanco-flamingo-api'));
 
 		// 失敗時のWebhookを呼び出し
-		petanco_api_call_webhook('failure', null);
+		// petanco_api_call_webhook('failure', null);
 
 		return new WP_Error('submission_failed', __('送信の保存に失敗しました。', 'petanco-flamingo-api'), array('status' => 500));
 	}
@@ -180,6 +180,7 @@ function petanco_api_handle_submission($request) {
   * @param int|null $submission_id 送信ID（成功時のみ）
   * @return void
   */
+/*
 function petanco_api_call_webhook($type, $submission_id) {
 	$options = get_option('petanco_api_settings');
 	$webhook_url = $type === 'success' ? $options['success_webhook'] : $options['failure_webhook'];
@@ -199,6 +200,7 @@ function petanco_api_call_webhook($type, $submission_id) {
 		'headers' => array('Content-Type' => 'application/json'),
 	));
 }
+*/
 
 /**
   * 送信データのバリデーション（フロントチェックが前提）
@@ -302,7 +304,8 @@ function petanco_api_settings_init() {
 		'petanco_api_general_section'
 	);
 
-	// 新しいWebhookフィールドを追加
+	// Webhookフィールドを追加
+	/*
 	add_settings_field(
 		'petanco_api_success_webhook',
 		__('保存成功時のWebhook URL', 'petanco-flamingo-api'),
@@ -320,6 +323,7 @@ function petanco_api_settings_init() {
 		'petanco_api_general_section',
 		array('key' => 'failure_webhook')
 	);
+	*/
 }
 add_action('admin_init', 'petanco_api_settings_init');
 
@@ -330,6 +334,7 @@ add_action('admin_init', 'petanco_api_settings_init');
   * @param array $args コールバック引数
   * @return void
   */
+/*
 function petanco_api_webhook_callback($args) {
 	$options = get_option('petanco_api_settings');
 	$key = $args['key'];
@@ -347,7 +352,7 @@ function petanco_api_webhook_callback($args) {
 	</p>
 	<?php
 }
-
+*/
 
 /**
   * 設定セクションのコールバック
