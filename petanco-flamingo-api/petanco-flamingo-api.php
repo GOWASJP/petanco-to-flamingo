@@ -126,10 +126,11 @@ function petanco_api_handle_submission($request) {
 			'address1' => sanitize_text_field($params['address1'] ?? ''),
 			'address2' => sanitize_text_field($params['address2'] ?? ''),
 			'campaign_id' => sanitize_text_field($params['campaign_id'] ?? ''),
-			'benefit_id' => sanitize_text_field($params['benefit_id'] ?? '')
+			'benefit_id' => sanitize_text_field($params['benefit_id'] ?? ''),
+			'player_id' => sanitize_text_field($params['player_id'] ?? ''),
 		),
 		'body' => sprintf(
-			"特典: %s\n名前: %s\nメール: %s\n電話番号: %s\n郵便番号: %s\n都道府県: %s\n市区町村: %s\n住所1: %s\n住所2: %s\nキャンペーンID: %s\n特典ID: %s",
+			"特典: %s\n名前: %s\nメール: %s\n電話番号: %s\n郵便番号: %s\n都道府県: %s\n市区町村: %s\n住所1: %s\n住所2: %s\nキャンペーンID: %s\n特典ID: %s\nプレイヤーID: %s",
 			sanitize_text_field($params['subject'] ?? ''),
 			sanitize_text_field($params['name'] ?? ''),
 			sanitize_email($params['email'] ?? ''),
@@ -140,7 +141,8 @@ function petanco_api_handle_submission($request) {
 			sanitize_text_field($params['address1'] ?? ''),
 			sanitize_text_field($params['address2'] ?? ''),
 			sanitize_text_field($params['campaign_id'] ?? ''),
-			sanitize_text_field($params['benefit_id'] ?? '')
+			sanitize_text_field($params['benefit_id'] ?? ''),
+			sanitize_text_field($params['player_id'] ?? ''),
 		),
 		'meta' => array(
 			'remote_ip' => $_SERVER['REMOTE_ADDR'],
@@ -169,16 +171,16 @@ function petanco_api_handle_submission($request) {
 
 		return new WP_Error('submission_failed', __('送信の保存に失敗しました。', 'petanco-flamingo-api'), array('status' => 500));
 	}
- }
+}
 
- /**
+/**
   * Webhookの呼び出し
   *
   * @param string $type 'success' または 'failure'
   * @param int|null $submission_id 送信ID（成功時のみ）
   * @return void
   */
- function petanco_api_call_webhook($type, $submission_id) {
+function petanco_api_call_webhook($type, $submission_id) {
 	$options = get_option('petanco_api_settings');
 	$webhook_url = $type === 'success' ? $options['success_webhook'] : $options['failure_webhook'];
 
@@ -196,16 +198,16 @@ function petanco_api_handle_submission($request) {
 		'body' => wp_json_encode($body),
 		'headers' => array('Content-Type' => 'application/json'),
 	));
- }
+}
 
- /**
+/**
   * 送信データのバリデーション（フロントチェックが前提）
   *
   * @param array $params 送信パラメータ
   * @return array バリデーションエラーの配列
   */
- function petanco_api_validate_submission($params) {
-	$required_fields = ['subject', 'name', 'email', 'tel', 'zip', 'pref', 'city', 'address1', 'campaign_id', 'benefit_id'];
+function petanco_api_validate_submission($params) {
+	$required_fields = ['subject', 'name', 'email', 'tel', 'zip', 'pref', 'city', 'address1', 'campaign_id', 'benefit_id', 'player_id'];
 	$errors = array();
 
 	foreach ($required_fields as $field) {
@@ -220,7 +222,7 @@ function petanco_api_handle_submission($request) {
 	}
 
 	return $errors;
- }
+}
 
 /**
   * 設定ページの追加
@@ -318,8 +320,8 @@ function petanco_api_settings_init() {
 		'petanco_api_general_section',
 		array('key' => 'failure_webhook')
 	);
- }
- add_action('admin_init', 'petanco_api_settings_init');
+}
+add_action('admin_init', 'petanco_api_settings_init');
 
 
 /**
@@ -328,7 +330,7 @@ function petanco_api_settings_init() {
   * @param array $args コールバック引数
   * @return void
   */
- function petanco_api_webhook_callback($args) {
+function petanco_api_webhook_callback($args) {
 	$options = get_option('petanco_api_settings');
 	$key = $args['key'];
 	$value = isset($options[$key]) ? $options[$key] : '';
@@ -344,7 +346,7 @@ function petanco_api_settings_init() {
 		?>
 	</p>
 	<?php
- }
+}
 
 
 /**
@@ -403,7 +405,7 @@ function petanco_api_secret_key_callback() {
 	<input type="text" id="petanco_api_secret_key" name="petanco_api_settings[secret_key]" value="<?php echo esc_attr($secret_key); ?>" class="regular-text">
 	<p class="description"><?php _e('Petanco側で発行したシークレットキーを入力してください。', 'petanco-flamingo-api'); ?></p>
 	<?php
- }
+}
 
 /**
   * レート制限設定のコールバック
@@ -444,7 +446,7 @@ function petanco_api_sanitize_settings($input) {
 	}
 
 	return $sanitized_input;
- }
+}
 
 /**
   * REST APIルートの登録
