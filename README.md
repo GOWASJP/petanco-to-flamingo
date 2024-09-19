@@ -1,4 +1,4 @@
-# Plugin to connect Petanco to Flamingo - 仕様書
+# Petanco to Flamingo - 仕様書
 
 ## 概要
 
