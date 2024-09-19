@@ -11,8 +11,7 @@
  * Text Domain: petanco-to-flamingo
  *
  * このプラグインは、PetancoのシステムからのAPIリクエストを受け取り、
- * 送信されたデータをFlamingoに保存します。また、Webhook通知、
- * レート制限、認証機能も提供します。
+ * 送信されたデータをFlamingoに保存します。また、レート制限、認証機能も提供します。
  *
  * @package Petanco_to_Flamingo
  */
@@ -159,48 +158,14 @@ function petanco_api_handle_submission($request) {
 		$response = new WP_REST_Response(array('message' => __('送信が正常に保存されました。', 'petanco-to-flamingo')), 200);
 		$response->set_headers(array('Cache-Control' => 'no-cache, no-store, must-revalidate'));
 
-		// 成功時のWebhookを呼び出し
-		// petanco_api_call_webhook('success', $submission->id());
-
 		return $response;
 	} else {
 		petanco_api_debug_log(__('Failed to save submission', 'petanco-to-flamingo'));
-
-		// 失敗時のWebhookを呼び出し
-		// petanco_api_call_webhook('failure', null);
 
 		return new WP_Error('submission_failed', __('送信の保存に失敗しました。', 'petanco-to-flamingo'), array('status' => 500));
 	}
 }
 
-/**
-  * Webhookの呼び出し
-  *
-  * @param string $type 'success' または 'failure'
-  * @param int|null $submission_id 送信ID（成功時のみ）
-  * @return void
-  */
-/*
-function petanco_api_call_webhook($type, $submission_id) {
-	$options = get_option('petanco_api_settings');
-	$webhook_url = $type === 'success' ? $options['success_webhook'] : $options['failure_webhook'];
-
-	if (empty($webhook_url)) {
-		return;
-	}
-
-	$body = array(
-		'event' => $type === 'success' ? 'submission_success' : 'submission_failure',
-		'submission_id' => $submission_id,
-		'timestamp' => current_time('timestamp')
-	);
-
-	wp_remote_post($webhook_url, array(
-		'body' => wp_json_encode($body),
-		'headers' => array('Content-Type' => 'application/json'),
-	));
-}
-*/
 
 /**
   * 送信データのバリデーション（フロントチェックが前提）
@@ -304,55 +269,9 @@ function petanco_api_settings_init() {
 		'petanco_api_general_section'
 	);
 
-	// Webhookフィールドを追加
-	/*
-	add_settings_field(
-		'petanco_api_success_webhook',
-		__('保存成功時のWebhook URL', 'petanco-to-flamingo'),
-		'petanco_api_webhook_callback',
-		'petanco-api-settings',
-		'petanco_api_general_section',
-		array('key' => 'success_webhook')
-	);
-
-	add_settings_field(
-		'petanco_api_failure_webhook',
-		__('保存失敗時のWebhook URL', 'petanco-to-flamingo'),
-		'petanco_api_webhook_callback',
-		'petanco-api-settings',
-		'petanco_api_general_section',
-		array('key' => 'failure_webhook')
-	);
-	*/
 }
 add_action('admin_init', 'petanco_api_settings_init');
 
-
-/**
-  * Webhook入力フィールドのコールバック関数
-  *
-  * @param array $args コールバック引数
-  * @return void
-  */
-/*
-function petanco_api_webhook_callback($args) {
-	$options = get_option('petanco_api_settings');
-	$key = $args['key'];
-	$value = isset($options[$key]) ? $options[$key] : '';
-	?>
-	<input type="url" id="petanco_api_<?php echo esc_attr($key); ?>" name="petanco_api_settings[<?php echo esc_attr($key); ?>]" value="<?php echo esc_url($value); ?>" class="regular-text">
-	<p class="description">
-		<?php
-		if ($key === 'success_webhook') {
-			_e('保存が成功したときに通知を送信するWebhook URLを入力してください。', 'petanco-to-flamingo');
-		} else {
-			_e('保存が失敗したときに通知を送信するWebhook URLを入力してください。', 'petanco-to-flamingo');
-		}
-		?>
-	</p>
-	<?php
-}
-*/
 
 /**
   * 設定セクションのコールバック
@@ -454,18 +373,6 @@ function petanco_api_sanitize_settings($input) {
 	$sanitized_input['enable_endpoint'] = isset($input['enable_endpoint']) ? '1' : '0';
 	$sanitized_input['secret_key'] = sanitize_text_field($input['secret_key']);
 	$sanitized_input['rate_limit'] = absint($input['rate_limit']);
-
-	// Webhook URLのサニタイズとバリデーション
-	// $sanitized_input['success_webhook'] = esc_url_raw($input['success_webhook']);
-	// $sanitized_input['failure_webhook'] = esc_url_raw($input['failure_webhook']);
-
-	// if (!empty($sanitized_input['success_webhook']) && !wp_http_validate_url($sanitized_input['success_webhook'])) {
-	// 	add_settings_error('petanco_api_settings', 'invalid_success_webhook', __('無効な成功時Webhook URLです。', 'petanco-to-flamingo'));
-	// }
-
-	// if (!empty($sanitized_input['failure_webhook']) && !wp_http_validate_url($sanitized_input['failure_webhook'])) {
-	// 	add_settings_error('petanco_api_settings', 'invalid_failure_webhook', __('無効な失敗時Webhook URLです。', 'petanco-to-flamingo'));
-	// }
 
 	return $sanitized_input;
 }

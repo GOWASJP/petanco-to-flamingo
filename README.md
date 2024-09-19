@@ -2,9 +2,7 @@
 
 ## 概要
 
-このプラグインは、Petanco のシステムからの API リクエストを受け取り、応募データを Flamingo に保存します。また、Webhook 通知、レート制限、認証機能も提供します。
-
-**Webhook 通知機能は現在、OFF にしています**
+このプラグインは、Petanco のシステムからの API リクエストを受け取り、応募データを Flamingo に保存します。また、レート制限、認証機能も提供します。利用者向けには必要な情報のみに整理した利用者向けプラグインを別途提供します。
 
 ## バージョン
 
@@ -14,6 +12,7 @@
 
 - 最新の WordPress
 - Flamingo(バージョン 2.5)
+- https(SSL)
 
 ## 主要機能
 
@@ -27,15 +26,11 @@
 
    - 受信したデータを Flamingo の受信メッセージとして保存
 
-3. **Webhook 通知**
-
-   - 保存成功時と失敗時にそれぞれ設定された URL に Webhook 通知を送信
-
-4. **レート制限**
+3. **レート制限**
 
    - 1 時間あたりの最大リクエスト数を設定可能
 
-5. **管理画面設定**
+4. **管理画面設定**
    - Flamingo 管理画面内に「Petanco 連携設定」ページを追加
 
 ## 設定項目
@@ -43,8 +38,6 @@
 1. API エンドポイントの有効化
 2. シークレットキー
 3. レート制限（1 時間あたりの最大リクエスト数）
-4. 保存成功時の Webhook URL
-5. 保存失敗時の Webhook URL
 
 ## API 仕様
 
@@ -83,27 +76,6 @@
 - エラー時:
   - ステータスコード: 400, 403, 429, または 500
   - ボディ: `{"code": "エラーコード", "message": "エラーメッセージ", "data": {"status": ステータスコード}}`
-
-## Webhook 通知
-
-- 成功時:
-
-  ```json
-  {
-    "event": "submission_success",
-    "submission_id": "Flamingo内の送信ID",
-    "timestamp": "Unix timestamp"
-  }
-  ```
-
-- 失敗時:
-  ```json
-  {
-    "event": "submission_failure",
-    "submission_id": null,
-    "timestamp": "Unix timestamp"
-  }
-  ```
 
 ## 投稿例
 
@@ -176,8 +148,6 @@ const handleSubmit = () => {
 ## 注意事項
 
 - このプラグインを使用するには、Flamingo(バージョン 2.5 以降) プラグインがインストールされ、有効化されている必要があります。
-- デバッグモードが有効な場合、ログが WordPress のエラーログに記録されます。
-- CORS 設定により、すべてのオリジンからの POST リクエストが許可されています。
 - 実際の使用時は、`your-wordpress-site.com`を実際の WordPress サイトの URL に、`your-secret-key-here`を設定した実際のシークレットキーに置き換えてください。
 
 ## インストール方法
