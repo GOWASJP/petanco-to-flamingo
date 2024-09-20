@@ -3,7 +3,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.0.3
+ * Version: 1.0.4
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -32,7 +32,7 @@ define('PETANCO_API_DEBUG', true);
  */
 function petanco_api_debug_log($message) {
 	if (PETANCO_API_DEBUG) {
-		error_log(sprintf(__('Flamingo API Extension for Petanco: %s', 'petanco-to-flamingo'), $message));
+		error_log(sprintf(__('Petanco to Flamingo: %s', 'petanco-to-flamingo'), $message));
 	}
 }
 
@@ -42,8 +42,13 @@ function petanco_api_debug_log($message) {
  * @return void
  */
 function petanco_api_extension_activate() {
-	add_option('petanco_api_extension_activated', true);
-	petanco_api_debug_log(__('Plugin activated', 'petanco-to-flamingo'));
+    if (!is_ssl()) {
+        deactivate_plugins(plugin_basename(__FILE__));
+        wp_die(__('このプラグインはSSL環境でのみ使用できます。プラグインを有効化するには、SSLを有効にしてください。', 'petanco-to-flamingo'), 'プラグイン有効化エラー', array('back_link' => true));
+    }
+
+    add_option('petanco_api_extension_activated', true);
+    petanco_api_debug_log(__('Plugin activated', 'petanco-to-flamingo'));
 }
 register_activation_hook(__FILE__, 'petanco_api_extension_activate');
 
@@ -53,7 +58,7 @@ register_activation_hook(__FILE__, 'petanco_api_extension_activate');
  * @return void
  */
 function petanco_api_extension_init() {
-	petanco_api_debug_log(__('Initialization started', 'petanco-to-flamingo'));
+	petanco_api_debug_log(__('初期化が開始されました。', 'petanco-to-flamingo'));
 
 	load_plugin_textdomain('petanco-to-flamingo', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
@@ -63,7 +68,7 @@ function petanco_api_extension_init() {
 		return;
 	}
 
-	petanco_api_debug_log(sprintf(__('Flamingo detected successfully. Version: %s', 'petanco-to-flamingo'), FLAMINGO_VERSION));
+	petanco_api_debug_log(sprintf(__('フラミンゴが正常に検出されました. Version: %s', 'petanco-to-flamingo'), FLAMINGO_VERSION));
 
 	add_action('rest_api_init', 'petanco_api_register_route');
 	add_action('admin_notices', 'petanco_api_extension_success_notice');
@@ -87,8 +92,8 @@ function petanco_api_extension_admin_notice() {
  */
 function petanco_api_extension_success_notice() {
 	if (get_option('petanco_api_extension_activated')) {
-		echo '<div class="updated"><p>' . __('Flamingo API Extensionは正常にアクティベートされ、Flamingoが検出されました。', 'petanco-to-flamingo') . '</p></div>';
-		petanco_api_debug_log(__('Admin success notice displayed', 'petanco-to-flamingo'));
+		echo '<div class="updated"><p>' . __('Petanco to Flamingoは正常にアクティベートされ、Flamingoが検出されました。', 'petanco-to-flamingo') . '</p></div>';
+		petanco_api_debug_log(__('アクティベート成功通知', 'petanco-to-flamingo'));
 		delete_option('petanco_api_extension_activated');
 	}
 }
@@ -104,7 +109,7 @@ function petanco_api_handle_submission($request) {
 
 	$validation_errors = petanco_api_validate_submission($params);
 	if (!empty($validation_errors)) {
-		petanco_api_debug_log(__('Validation failed', 'petanco-to-flamingo'));
+		petanco_api_debug_log(__('検証に失敗しました。', 'petanco-to-flamingo'));
 		return new WP_Error('validation_failed', __('入力データが無効です。', 'petanco-to-flamingo'), array('status' => 400, 'errors' => $validation_errors));
 	}
 
@@ -154,13 +159,13 @@ function petanco_api_handle_submission($request) {
 	$submission = Flamingo_Inbound_Message::add($submission_data);
 
 	if ($submission) {
-		petanco_api_debug_log(__('Submission saved successfully', 'petanco-to-flamingo') . ' ID: ' . $submission->id());
+		petanco_api_debug_log(__('送信が正常に完了しました。', 'petanco-to-flamingo') . ' ID: ' . $submission->id());
 		$response = new WP_REST_Response(array('message' => __('送信が正常に保存されました。', 'petanco-to-flamingo')), 200);
 		$response->set_headers(array('Cache-Control' => 'no-cache, no-store, must-revalidate'));
 
 		return $response;
 	} else {
-		petanco_api_debug_log(__('Failed to save submission', 'petanco-to-flamingo'));
+		petanco_api_debug_log(__('送信の保存に失敗しました。', 'petanco-to-flamingo'));
 
 		return new WP_Error('submission_failed', __('送信の保存に失敗しました。', 'petanco-to-flamingo'), array('status' => 500));
 	}
@@ -390,9 +395,9 @@ function petanco_api_register_route() {
 			'callback' => 'petanco_api_handle_submission',
 			'permission_callback' => 'petanco_api_check_permission'
 		));
-		petanco_api_debug_log(__('REST API route registered', 'petanco-to-flamingo'));
+		petanco_api_debug_log(__('REST API ルートが登録されました。', 'petanco-to-flamingo'));
 	} else {
-		petanco_api_debug_log(__('REST API route not registered (disabled in settings)', 'petanco-to-flamingo'));
+		petanco_api_debug_log(__('REST API ルートが登録されていません(設定で無効になっています)。', 'petanco-to-flamingo'));
 	}
 }
 
@@ -409,7 +414,7 @@ function petanco_api_check_permission($request) {
 	$provided_key = $request->get_header('X-Petanco-API-Key');
 
 	if (empty($secret_key) || $provided_key !== $secret_key) {
-		petanco_api_debug_log(__('API authentication failed', 'petanco-to-flamingo'));
+		petanco_api_debug_log(__('API認証に失敗しました。', 'petanco-to-flamingo'));
 		return new WP_Error('rest_forbidden', __('アクセスが拒否されました。', 'petanco-to-flamingo'), array('status' => 403));
 	}
 
@@ -458,7 +463,7 @@ add_action('rest_api_init', function() {
 	});
 }, 15);
 
-petanco_api_debug_log(__('Plugin file loaded', 'petanco-to-flamingo'));
+petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
 
 /**
  * 本番のCORS設定
@@ -492,5 +497,5 @@ add_action('rest_api_init', function() {
     }, 20);
 });
 
-petanco_api_debug_log(__('CORS settings applied', 'petanco-to-flamingo'));
+petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
 */
