@@ -6,7 +6,7 @@
 
 ## バージョン
 
-1.0.3
+1.0.4
 
 ## 利用条件
 
@@ -77,73 +77,6 @@
   - ステータスコード: 400, 403, 429, または 500
   - ボディ: `{"code": "エラーコード", "message": "エラーメッセージ", "data": {"status": ステータスコード}}`
 
-## 投稿例
-
-### cURL を使用した投稿例
-
-```bash
-curl -X POST \
-  https://your-wordpress-site.com/wp-json/petanco-api/v1/submit \
-  -H 'Content-Type: application/json' \
-  -H 'X-Petanco-API-Key: your-secret-key-here' \
-  -d '{
-    "subject": "サンプル特典",
-    "name": "山田太郎",
-    "email": "yamada@example.com",
-    "tel": "03-1234-5678",
-    "zip": "100-0001",
-    "pref": "東京都",
-    "city": "千代田区",
-    "address1": "丸の内1-1-1",
-    "address2": "サンプルビル101",
-    "campaign_id": "CAMP001",
-    "benefit_id": "BENEFIT001",
-    "player_id": "PLAYER004"
-  }'
-```
-
-### React を使用した投稿例
-
-```jsx
-import axios from "axios";
-
-const submitForm = async (formData) => {
-  try {
-    const response = await axios.post(
-      "https://your-wordpress-site.com/wp-json/petanco-api/v1/submit",
-      formData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          "X-Petanco-API-Key": "your-secret-key-here",
-        },
-      }
-    );
-    console.log("成功:", response.data);
-  } catch (error) {
-    console.error("エラー:", error.response.data);
-  }
-};
-
-// 使用例
-const handleSubmit = () => {
-  const formData = {
-    subject: "サンプル特典",
-    name: "山田太郎",
-    email: "yamada@example.com",
-    tel: "03-1234-5678",
-    zip: "100-0001",
-    pref: "東京都",
-    city: "千代田区",
-    address1: "丸の内1-1-1",
-    address2: "サンプルビル101",
-    campaign_id: "CAMP001",
-    benefit_id: "BENEFIT001",
-    player_id": "PLAYER004",
-  };
-  submitForm(formData);
-};
-```
 
 ## 注意事項
 
