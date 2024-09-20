@@ -438,6 +438,14 @@ function petanco_api_settings_init() {
 		'petanco_api_general_section'
 	);
 
+	add_settings_field(
+        'petanco_api_cors_origin',
+        __('CORS設定', 'petanco-to-flamingo'),
+        'petanco_api_cors_origin_callback',
+        'petanco-api-settings',
+        'petanco_api_general_section'
+    );
+
 }
 add_action('admin_init', 'petanco_api_settings_init');
 
@@ -548,6 +556,30 @@ function petanco_api_secret_key_callback() {
     <?php
 }
 
+
+/**
+ * CORS設定のコールバック関数
+ *
+ * 管理画面でCORSの設定を行うためのセレクトボックスを表示します。
+ * ユーザーは 'https://petanco.io' または '*' (全てのオリジン) を選択できます。
+ *
+ * @since 1.0.5
+ *
+ * @return void
+ */
+function petanco_api_cors_origin_callback() {
+    $options = get_option('petanco_api_settings');
+    $cors_origin = isset($options['cors_origin']) ? $options['cors_origin'] : 'https://petanco.io';
+    ?>
+    <select name="petanco_api_settings[cors_origin]" id="petanco_api_cors_origin">
+        <option value="https://petanco.io" <?php selected($cors_origin, 'https://petanco.io'); ?>>https://petanco.io</option>
+        <option value="*" <?php selected($cors_origin, '*'); ?>>* (全てのオリジン)</option>
+    </select>
+    <p class="description"><?php _e('Access-Control-Allow-Origin ヘッダーの値を選択してください。', 'petanco-to-flamingo'); ?></p>
+    <?php
+}
+
+
 /**
  * 設定のサニタイズ
  *
@@ -559,6 +591,7 @@ function petanco_api_sanitize_settings($input) {
     $sanitized_input['enable_endpoint'] = isset($input['enable_endpoint']) ? '1' : '0';
     $sanitized_input['secret_key'] = !empty($input['secret_key']) ? petanco_api_encrypt_secret_key(sanitize_text_field($input['secret_key'])) : '';
     $sanitized_input['rate_limit'] = absint($input['rate_limit']);
+	$sanitized_input['cors_origin'] = ($input['cors_origin'] === '*') ? '*' : 'https://petanco.io';
 
     return $sanitized_input;
 }
@@ -652,35 +685,23 @@ function petanco_api_check_permission($request) {
     return true;
 }
 
-// テストCORS設定を追加
-
-add_action('rest_api_init', function() {
-	remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
-	add_filter('rest_pre_serve_request', function($value) {
-		header('Access-Control-Allow-Origin: *');
-		header('Access-Control-Allow-Methods: POST');
-		header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type');
-		return $value;
-	});
-}, 15);
-
-petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
-
 
 /**
- * 本番のCORS設定
+ * CORS設定
  *
  * @return void
  */
-/*
+
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
-        $origin = get_http_origin();
-        $allowed_origin = 'https://petanco.io';
+        $options = get_option('petanco_api_settings');
+        $cors_origin = isset($options['cors_origin']) ? $options['cors_origin'] : 'https://petanco.io';
 
-        if ($origin === $allowed_origin) {
-            header("Access-Control-Allow-Origin: $allowed_origin");
+        $origin = get_http_origin();
+
+        if ($cors_origin === '*' || $origin === $cors_origin) {
+            header("Access-Control-Allow-Origin: $cors_origin");
             header('Access-Control-Allow-Methods: POST, OPTIONS');
             header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type');
             header('Access-Control-Allow-Credentials: true');
@@ -689,7 +710,6 @@ add_action('rest_api_init', function() {
             exit;
         }
 
-        // OPTIONSリクエスト（プリフライトリクエスト）の処理
         if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
             status_header(200);
             exit;
@@ -700,4 +720,4 @@ add_action('rest_api_init', function() {
 });
 
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
-*/
+
