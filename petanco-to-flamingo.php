@@ -93,7 +93,7 @@ add_action('plugins_loaded', 'petanco_api_extension_init', 20);
  */
 function petanco_api_extension_admin_notice() {
 	echo '<div class="error"><p>' . __('Petanco to Flamingoを使用するには、Flamingoプラグインをインストールし、有効化する必要があります。', 'petanco-to-flamingo') . '</p></div>';
-	petanco_api_debug_log(__('Admin error notice displayed', 'petanco-to-flamingo'));
+	petanco_api_debug_log(__('管理エラー通知が表示されました。', 'petanco-to-flamingo'));
 }
 
 /**
