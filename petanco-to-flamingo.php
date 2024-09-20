@@ -42,13 +42,18 @@ function petanco_api_debug_log($message) {
  * @return void
  */
 function petanco_api_extension_activate() {
+    petanco_api_debug_log(__('プラグイン有効化プロセスを開始します。', 'petanco-to-flamingo'));
+    
     if (!is_ssl()) {
+        petanco_api_debug_log(__('SSL環境が検出されませんでした。プラグインを無効化します。', 'petanco-to-flamingo'));
         deactivate_plugins(plugin_basename(__FILE__));
         wp_die(__('このプラグインはSSL環境でのみ使用できます。プラグインを有効化するには、SSLを有効にしてください。', 'petanco-to-flamingo'), 'プラグイン有効化エラー', array('back_link' => true));
+    } else {
+        petanco_api_debug_log(__('SSL環境が正常に検出されました。プラグインを有効化します。', 'petanco-to-flamingo'));
     }
 
     add_option('petanco_api_extension_activated', true);
-    petanco_api_debug_log(__('Plugin activated', 'petanco-to-flamingo'));
+    petanco_api_debug_log(__('プラグインが正常に有効化されました。', 'petanco-to-flamingo'));
 }
 register_activation_hook(__FILE__, 'petanco_api_extension_activate');
 
@@ -59,6 +64,12 @@ register_activation_hook(__FILE__, 'petanco_api_extension_activate');
  */
 function petanco_api_extension_init() {
 	petanco_api_debug_log(__('初期化が開始されました。', 'petanco-to-flamingo'));
+
+    if (!is_ssl()) {
+        petanco_api_debug_log(__('警告: 現在のリクエストはSSL環境ではありません。', 'petanco-to-flamingo'));
+    } else {
+        petanco_api_debug_log(__('SSL環境で動作しています。', 'petanco-to-flamingo'));
+    }
 
 	load_plugin_textdomain('petanco-to-flamingo', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
