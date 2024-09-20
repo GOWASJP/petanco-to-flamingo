@@ -37,6 +37,52 @@ function petanco_api_debug_log($message) {
 }
 
 /**
+ * バージョン管理定数
+ *
+ * @return void
+ */
+define('PETANCO_TO_FLAMINGO_VERSION', '1.0.4');
+define('PETANCO_TO_FLAMINGO_GITHUB_API_URL', 'https://api.github.com/repos/GOWASJP/petanco-to-flamingo/releases/latest');
+
+/**
+ * 管理画面の初期化時に実行される関数
+ */
+function petanco_api_admin_init() {
+    add_action('admin_notices', 'petanco_api_version_check');
+}
+add_action('admin_init', 'petanco_api_admin_init');
+
+/**
+ * プラグインのバージョンをチェックし、新しいバージョンがある場合は通知を表示
+ */
+function petanco_api_version_check() {
+    $last_check = get_transient('petanco_to_flamingo_version_check');
+    if (false === $last_check) {
+        $response = wp_remote_get(PETANCO_TO_FLAMINGO_GITHUB_API_URL);
+        if (is_wp_error($response)) {
+            return;
+        }
+        $body = wp_remote_retrieve_body($response);
+        $data = json_decode($body);
+        if (isset($data->tag_name)) {
+            $latest_version = ltrim($data->tag_name, 'v');
+            set_transient('petanco_to_flamingo_latest_version', $latest_version, DAY_IN_SECONDS);
+        }
+        set_transient('petanco_to_flamingo_version_check', time(), DAY_IN_SECONDS);
+    }
+
+    $latest_version = get_transient('petanco_to_flamingo_latest_version');
+    if ($latest_version && version_compare(PETANCO_TO_FLAMINGO_VERSION, $latest_version, '<')) {
+        $message = sprintf(
+            __('Petanco to Flamingo プラグインの新しいバージョン（%s）が利用可能です。<a href="%s" target="_blank">こちらからダウンロード</a>してください。', 'petanco-to-flamingo'),
+            $latest_version,
+            'https://github.com/GOWASJP/petanco-to-flamingo/releases/latest'
+        );
+        echo '<div class="notice notice-warning is-dismissible"><p>' . $message . '</p></div>';
+    }
+}
+
+/**
  * プラグイン有効化時の処理
  *
  * @return void
@@ -510,3 +556,4 @@ add_action('rest_api_init', function() {
 
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
 */
+
