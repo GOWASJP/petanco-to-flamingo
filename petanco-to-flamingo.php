@@ -39,6 +39,19 @@ define('PETANCO_TO_FLAMINGO_VERSION', '1.0.5');
  */
 define('PETANCO_TO_FLAMINGO_GITHUB_API_URL', 'https://api.github.com/repos/GOWASJP/petanco-to-flamingo/releases/latest');
 
+
+/**
+ * デフォルトのレート制限値
+ *
+ * この定数は、APIリクエストのレート制限のデフォルト値を定義します。
+ * 値は1時間あたりの最大リクエスト数を表します。
+ * ユーザーが設定を変更していない場合、このデフォルト値が使用されます。
+ *
+ * @var int
+ */
+define('PETANCO_DEFAULT_RATE_LIMIT', 100);
+
+
 /**
  * デバッグログ関数
  *
@@ -558,12 +571,12 @@ function petanco_api_sanitize_settings($input) {
  * @return void
  */
 function petanco_api_rate_limit_callback() {
-	$options = get_option('petanco_api_settings');
-	$rate_limit = isset($options['rate_limit']) ? $options['rate_limit'] : 100;
-	?>
-	<input type="number" id="petanco_api_rate_limit" name="petanco_api_settings[rate_limit]" value="<?php echo esc_attr($rate_limit); ?>" min="1" max="3600">
-	<p class="description"><?php _e('1時間あたりの最大リクエスト数を設定してください。', 'petanco-to-flamingo'); ?></p>
-	<?php
+    $options = get_option('petanco_api_settings');
+    $rate_limit = isset($options['rate_limit']) ? intval($options['rate_limit']) : PETANCO_DEFAULT_RATE_LIMIT;
+    ?>
+    <input type="number" id="petanco_api_rate_limit" name="petanco_api_settings[rate_limit]" value="<?php echo esc_attr($rate_limit); ?>" min="1" max="3600">
+    <p class="description"><?php _e('1時間あたりの最大リクエスト数を設定してください。デフォルト値は100です。', 'petanco-to-flamingo'); ?></p>
+    <?php
 }
 
 /**
@@ -572,23 +585,23 @@ function petanco_api_rate_limit_callback() {
  * @return bool レート制限内ならtrue、超過していればfalse
  */
 function petanco_api_check_rate_limit() {
-	$options = get_option('petanco_api_settings');
-	$rate_limit = isset($options['rate_limit']) ? intval($options['rate_limit']) : 60;
+    $options = get_option('petanco_api_settings');
+    $rate_limit = isset($options['rate_limit']) ? intval($options['rate_limit']) : PETANCO_DEFAULT_RATE_LIMIT;
 
-	$current_time = time();
-	$request_count = get_transient('petanco_api_request_count');
+    $current_time = time();
+    $request_count = get_transient('petanco_api_request_count');
 
-	if ($request_count === false) {
-		set_transient('petanco_api_request_count', 1, 3600);
-		return true;
-	}
+    if ($request_count === false) {
+        set_transient('petanco_api_request_count', 1, 3600);
+        return true;
+    }
 
-	if ($request_count >= $rate_limit) {
-		return false;
-	}
+    if ($request_count >= $rate_limit) {
+        return false;
+    }
 
-	set_transient('petanco_api_request_count', $request_count + 1, 3600);
-	return true;
+    set_transient('petanco_api_request_count', $request_count + 1, 3600);
+    return true;
 }
 
 /**
