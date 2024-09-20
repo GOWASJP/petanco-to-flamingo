@@ -44,8 +44,11 @@ function petanco_api_debug_log($message) {
 define('PETANCO_TO_FLAMINGO_VERSION', '1.0.4');
 define('PETANCO_TO_FLAMINGO_GITHUB_API_URL', 'https://api.github.com/repos/GOWASJP/petanco-to-flamingo/releases/latest');
 
+
 /**
  * 管理画面の初期化時に実行される関数
+ * 
+ * @return void
  */
 function petanco_api_admin_init() {
     add_action('admin_notices', 'petanco_api_version_check');
