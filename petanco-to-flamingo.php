@@ -334,7 +334,7 @@ function petanco_api_handle_submission($request) {
 
 	if ($submission) {
 		petanco_api_debug_log(__('送信が正常に完了しました。', 'petanco-to-flamingo') . ' ID: ' . $submission->id());
-		$response = new WP_REST_Response(array('message' => __('送信が正常に保存されました。', 'petanco-to-flamingo')), 200);
+		$response = new WP_REST_Response(array('message' => __('応募が正常に完了しました。', 'petanco-to-flamingo')), 200);
 		$response->set_headers(array('Cache-Control' => 'no-cache, no-store, must-revalidate'));
 
 		return $response;
