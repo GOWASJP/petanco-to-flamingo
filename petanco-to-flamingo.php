@@ -688,12 +688,11 @@ function petanco_api_check_permission($request) {
 
 
 /**
- * CORS設定
+ * テストのCORS設定
  *
  * @return void
  */
 
-// テストCORS設定を追加
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
