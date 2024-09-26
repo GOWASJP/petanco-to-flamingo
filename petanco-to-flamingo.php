@@ -673,7 +673,7 @@ function petanco_api_version_check_status_callback() {
                 echo '<p style="color: orange;">' . __('新しいバージョンが利用可能です。', 'petanco-to-flamingo') . '</p>';
                 
                 // ダウンロードリンクの追加
-                $download_url = 'https://github.com/GOWASJP/petanco-to-flamingo/archive/refs/tags/v' . $latest_version . '.zip';
+                $download_url = 'https://github.com/GOWASJP/petanco-to-flamingo/releases/latest';
                 echo '<p><a href="' . esc_url($download_url) . '" class="button button-primary" target="_blank">' . 
                     __('最新バージョンをダウンロード', 'petanco-to-flamingo') . '</a></p>';
                 

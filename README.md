@@ -26,7 +26,11 @@
 
    - 1 時間あたりの最大リクエスト数を設定可能
 
-4. **管理画面設定**
+4. **プラグインのダウンロード URL**
+
+   - `https://github.com/GOWASJP/petanco-to-flamingo/releases/latest`
+
+5. **管理画面設定**
    - Flamingo 管理画面内に「Petanco 連携設定」ページを追加
 
 ## 設定項目
