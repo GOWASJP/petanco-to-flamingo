@@ -26,11 +26,7 @@
 
    - 1 時間あたりの最大リクエスト数を設定可能
 
-4. **プラグインのダウンロード URL**
-
-   - `https://github.com/GOWASJP/petanco-to-flamingo/releases/latest`
-
-5. **管理画面設定**
+4. **管理画面設定**
    - Flamingo 管理画面内に「Petanco 連携設定」ページを追加
 
 ## 設定項目
@@ -87,3 +83,7 @@
 1. WordPress の管理画面「プラグイン」でプラグイン(zip ファイル)をアップロードします。
 2. WordPress 管理画面でプラグインを有効化します。
 3. Flamingo 管理画面内の「Petanco 連携設定」ページで必要な設定を行います。
+
+## プラグインダウンロード URL
+
+- `https://github.com/GOWASJP/petanco-to-flamingo/releases/latest`
