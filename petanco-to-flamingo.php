@@ -3,7 +3,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.0.5
+ * Version: 1.0.6
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -31,7 +31,7 @@ define('PETANCO_API_DEBUG', false);
  * プラグインのバージョンを定義する定数
  * バージョン管理とアップデートチェックに使用されます。
  */
-define('PETANCO_TO_FLAMINGO_VERSION', '1.0.5');
+define('PETANCO_TO_FLAMINGO_VERSION', '1.0.6');
 
 /**
  * GitHub APIのURLを定義する定数
@@ -788,7 +788,7 @@ function petanco_api_check_permission($request) {
  *
  * @return void
  */
-
+/*
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
@@ -799,13 +799,14 @@ add_action('rest_api_init', function() {
     });
 }, 15);
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
+*/
 
 /**
  * 本番のCORS設定
  *
  * @return void
  */
-/*
+
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
@@ -832,4 +833,3 @@ add_action('rest_api_init', function() {
     }, 20);
 });
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
-*/
