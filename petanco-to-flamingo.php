@@ -279,13 +279,21 @@ function petanco_api_extension_success_notice() {
  * @return WP_REST_Response|WP_Error 成功時はレスポンスオブジェクト、失敗時はエラーオブジェクト
  */
 function petanco_api_handle_submission($request) {
-	$params = $request->get_params();
+    $params = $request->get_params();
 
-	$validation_errors = petanco_api_validate_submission($params);
-	if (!empty($validation_errors)) {
-		petanco_api_debug_log(__('検証に失敗しました。', 'petanco-to-flamingo'));
-		return new WP_Error('validation_failed', __('入力データが無効です。', 'petanco-to-flamingo'), array('status' => 400, 'errors' => $validation_errors));
-	}
+    $validation_errors = petanco_api_validate_submission($params);
+    if (!empty($validation_errors)) {
+        petanco_api_debug_log(__('検証に失敗しました。', 'petanco-to-flamingo'));
+        return new WP_Error(
+            'validation_failed',
+            __('入力データが無効です。', 'petanco-to-flamingo'),
+            array(
+                'status' => 400,
+                'errors' => $validation_errors,
+                'callout' => current_time('mysql')
+            )
+        );
+    }
 
 	$submission_data = array(
 		'channel' => 'petanco',
@@ -330,19 +338,29 @@ function petanco_api_handle_submission($request) {
 
 	petanco_api_debug_log('Attempting to save submission with data: ' . print_r($submission_data, true));
 
-	$submission = Flamingo_Inbound_Message::add($submission_data);
+    $submission = Flamingo_Inbound_Message::add($submission_data);
 
-	if ($submission) {
-		petanco_api_debug_log(__('送信が正常に完了しました。', 'petanco-to-flamingo') . ' ID: ' . $submission->id());
-		$response = new WP_REST_Response(array('message' => __('応募が正常に完了しました。', 'petanco-to-flamingo')), 200);
-		$response->set_headers(array('Cache-Control' => 'no-cache, no-store, must-revalidate'));
+    if ($submission) {
+        petanco_api_debug_log(__('送信が正常に完了しました。', 'petanco-to-flamingo') . ' ID: ' . $submission->id());
+        $response = new WP_REST_Response(array(
+            'message' => __('応募が正常に完了しました。', 'petanco-to-flamingo'),
+            'callout' => current_time('mysql')
+        ), 200);
+        $response->set_headers(array('Cache-Control' => 'no-cache, no-store, must-revalidate'));
 
-		return $response;
-	} else {
-		petanco_api_debug_log(__('送信の保存に失敗しました。', 'petanco-to-flamingo'));
+        return $response;
+    } else {
+        petanco_api_debug_log(__('送信の保存に失敗しました。', 'petanco-to-flamingo'));
 
-		return new WP_Error('submission_failed', __('送信の保存に失敗しました。', 'petanco-to-flamingo'), array('status' => 500));
-	}
+        return new WP_Error(
+            'submission_failed',
+            __('送信の保存に失敗しました。', 'petanco-to-flamingo'),
+            array(
+                'status' => 500,
+                'callout' => current_time('mysql')
+            )
+        );
+    }
 }
 
 
