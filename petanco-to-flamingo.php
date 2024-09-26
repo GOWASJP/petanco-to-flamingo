@@ -468,6 +468,14 @@ function petanco_api_settings_init() {
 		'petanco_api_general_section'
 	);
 
+    add_settings_field(
+        'petanco_api_version_check_status',
+        __('バージョンチェック', 'petanco-to-flamingo'),
+        'petanco_api_version_check_status_callback',
+        'petanco-api-settings',
+        'petanco_api_general_section'
+    );
+
 }
 add_action('admin_init', 'petanco_api_settings_init');
 
@@ -635,6 +643,94 @@ function petanco_api_check_rate_limit() {
 
     set_transient('petanco_api_request_count', $request_count + 1, 3600);
     return true;
+}
+
+/**
+ * 現在のバージョンチェックの状態を確認
+ *
+ * 現在のバージョンチェックの状態を確認できるようにします。
+ *
+ * @return void
+ */
+function petanco_api_version_check_status_callback() {
+    $version_check = get_transient('petanco_to_flamingo_version_check');
+    $latest_version = get_transient('petanco_to_flamingo_latest_version');
+
+    echo '<p><strong>' . __('現在のプラグインバージョン:', 'petanco-to-flamingo') . '</strong> ' . PETANCO_TO_FLAMINGO_VERSION . '</p>';
+
+    if ($version_check === false) {
+        echo '<p>' . __('バージョンチェックはまだ実行されていません。', 'petanco-to-flamingo') . '</p>';
+    } elseif ($version_check === 'error') {
+        echo '<p style="color: red;">' . __('前回のバージョンチェックでエラーが発生しました。', 'petanco-to-flamingo') . '</p>';
+    } else {
+        $check_time = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $version_check);
+        echo '<p>' . sprintf(__('最終バージョンチェック: %s', 'petanco-to-flamingo'), $check_time) . '</p>';
+        
+        if ($latest_version) {
+            echo '<p><strong>' . __('最新バージョン:', 'petanco-to-flamingo') . '</strong> ' . esc_html($latest_version) . '</p>';
+            
+            if (version_compare(PETANCO_TO_FLAMINGO_VERSION, $latest_version, '<')) {
+                echo '<p style="color: orange;">' . __('新しいバージョンが利用可能です。', 'petanco-to-flamingo') . '</p>';
+                
+                // ダウンロードリンクの追加
+                $download_url = 'https://github.com/GOWASJP/petanco-to-flamingo/archive/refs/tags/v' . $latest_version . '.zip';
+                echo '<p><a href="' . esc_url($download_url) . '" class="button button-primary" target="_blank">' . 
+                    __('最新バージョンをダウンロード', 'petanco-to-flamingo') . '</a></p>';
+                
+                echo '<p class="description">' . __('注意: ダウンロード後、既存のプラグインを削除し、新しいバージョンをアップロードしてください。', 'petanco-to-flamingo') . '</p>';
+            } else {
+                echo '<p style="color: green;">' . __('プラグインは最新です。', 'petanco-to-flamingo') . '</p>';
+            }
+        } else {
+            echo '<p>' . __('最新バージョン情報は利用できません。', 'petanco-to-flamingo') . '</p>';
+        }
+    }
+
+    echo '<button type="button" id="check_version_now" class="button button-secondary">' . __('今すぐチェック', 'petanco-to-flamingo') . '</button>';
+    echo '<span id="version_check_message" style="margin-left: 10px; display: none;"></span>';
+
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        $('#check_version_now').click(function() {
+            var button = $(this);
+            var message = $('#version_check_message');
+            button.prop('disabled', true);
+            message.text('<?php echo esc_js(__('チェック中...', 'petanco-to-flamingo')); ?>').show();
+
+            $.ajax({
+                url: ajaxurl,
+                type: 'POST',
+                data: {
+                    action: 'petanco_check_version_now'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        message.text('<?php echo esc_js(__('バージョンチェックが完了しました。ページをリロードしてください。', 'petanco-to-flamingo')); ?>').css('color', 'green');
+                    } else {
+                        message.text('<?php echo esc_js(__('エラーが発生しました。もう一度お試しください。', 'petanco-to-flamingo')); ?>').css('color', 'red');
+                    }
+                },
+                error: function() {
+                    message.text('<?php echo esc_js(__('エラーが発生しました。もう一度お試しください。', 'petanco-to-flamingo')); ?>').css('color', 'red');
+                },
+                complete: function() {
+                    button.prop('disabled', false);
+                }
+            });
+        });
+    });
+    </script>
+    <?php
+}
+
+add_action('wp_ajax_petanco_check_version_now', 'petanco_api_check_version_now');
+
+function petanco_api_check_version_now() {
+    delete_transient('petanco_to_flamingo_version_check');
+    delete_transient('petanco_to_flamingo_latest_version');
+    petanco_api_version_check();
+    wp_send_json_success();
 }
 
 /**
