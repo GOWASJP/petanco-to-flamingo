@@ -34,13 +34,6 @@ define('PETANCO_API_DEBUG', false);
 define('PETANCO_TO_FLAMINGO_VERSION', '1.0.6');
 
 /**
- * GitHub APIのURLを定義する定数
- * 最新バージョンの取得に使用されます。
- */
-define('PETANCO_TO_FLAMINGO_GITHUB_API_URL', 'https://api.github.com/repos/GOWASJP/petanco-to-flamingo/releases/latest');
-
-
-/**
  * デフォルトのレート制限値
  *
  * この定数は、APIリクエストのレート制限のデフォルト値を定義します。
@@ -50,7 +43,6 @@ define('PETANCO_TO_FLAMINGO_GITHUB_API_URL', 'https://api.github.com/repos/GOWAS
  * @var int
  */
 define('PETANCO_DEFAULT_RATE_LIMIT', 300);
-
 
 /**
  * デバッグログ関数
@@ -63,97 +55,6 @@ function petanco_api_debug_log($message) {
 		error_log(sprintf(__('Petanco to Flamingo: %s', 'petanco-to-flamingo'), $message));
 	}
 }
-
-/**
- * 管理画面の初期化時に実行される関数
- * 
- * バージョンチェック機能を管理画面に追加します。
- *
- * @return void
- */
-function petanco_api_admin_init() {
-    add_action('admin_notices', 'petanco_api_version_check');
-}
-add_action('admin_init', 'petanco_api_admin_init');
-
-/**
- * プラグインのバージョンをチェックし、新しいバージョンがある場合は通知を表示
- *
- * GitHub APIを使用して最新バージョンを取得し、現在のバージョンと比較します。
- * 新しいバージョンが利用可能な場合、管理画面に通知を表示します。
- *
- * @return void
- */
-function petanco_api_version_check() {
-    if (false === get_transient('petanco_to_flamingo_version_check')) {
-        $response = wp_remote_get(PETANCO_TO_FLAMINGO_GITHUB_API_URL, [
-            'timeout' => 10,
-            'headers' => [
-                'Accept' => 'application/vnd.github.v3+json',
-                'User-Agent' => 'Petanco to Flamingo Plugin'
-            ]
-        ]);
-
-        if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) {
-            set_transient('petanco_to_flamingo_version_check', 'error', HOUR_IN_SECONDS);
-            add_action('admin_notices', 'petanco_api_error_notice');
-            return;
-        }
-
-        $data = json_decode(wp_remote_retrieve_body($response));
-        if (empty($data->tag_name)) {
-            set_transient('petanco_to_flamingo_version_check', 'error', HOUR_IN_SECONDS);
-            add_action('admin_notices', 'petanco_api_error_notice');
-            return;
-        }
-
-        $latest_version = ltrim($data->tag_name, 'v');
-        set_transient('petanco_to_flamingo_latest_version', $latest_version, DAY_IN_SECONDS);
-        set_transient('petanco_to_flamingo_version_check', time(), DAY_IN_SECONDS);
-    }
-
-    $latest_version = get_transient('petanco_to_flamingo_latest_version');
-    if ($latest_version && version_compare(PETANCO_TO_FLAMINGO_VERSION, $latest_version, '<')) {
-        add_action('admin_notices', 'petanco_api_update_notice');
-    }
-}
-
-
-
-/**
- * 管理画面に更新通知を表示
- *
- * 新しいバージョンのプラグインが利用可能な場合、
- * 管理画面に警告通知を表示します。通知には最新バージョン番号と
- * ダウンロードリンクが含まれます。
- *
- * @return void
- */
-function petanco_api_update_notice() {
-    $latest_version = get_transient('petanco_to_flamingo_latest_version');
-    $message = sprintf(
-        __('Petanco to Flamingo プラグインの新しいバージョン（%s）が利用可能です。<a href="%s" target="_blank">こちらからダウンロード</a>してください。', 'petanco-to-flamingo'),
-        $latest_version,
-        'https://github.com/GOWASJP/petanco-to-flamingo/releases/latest'
-    );
-    echo '<div class="notice notice-warning is-dismissible"><p>' . $message . '</p></div>';
-}
-
-/**
- * エラー通知を管理画面に表示
- *
- * バージョンチェック中にエラーが発生した場合、
- * 管理画面にエラー通知を表示します。通知には
- * エラーの概要とログ確認の指示が含まれます。
- *
- * @return void
- */
-function petanco_api_error_notice() {
-    $class = 'notice notice-error is-dismissible';
-    $message = __('Petanco to Flamingoプラグインのバージョンチェック中にエラーが発生しました。インターネット接続を確認し、しばらくしてからもう一度お試しください。', 'petanco-to-flamingo');
-    printf('<div class="%1$s"><p>%2$s</p></div>', esc_attr($class), esc_html($message));
-}
-
 
 /**
  * SSL環境を確認する関数
