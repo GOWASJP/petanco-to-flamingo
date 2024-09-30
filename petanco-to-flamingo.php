@@ -628,9 +628,31 @@ function petanco_api_version_check_status_callback() {
 add_action('wp_ajax_petanco_check_version_now', 'petanco_api_check_version_now');
 
 function petanco_api_check_version_now() {
-    delete_transient('petanco_to_flamingo_version_check');
-    delete_transient('petanco_to_flamingo_latest_version');
-    petanco_api_version_check();
+    $response = wp_remote_get('https://api.github.com/repos/GOWASJP/petanco-to-flamingo/releases/latest', [
+        'timeout' => 10,
+        'headers' => [
+            'Accept' => 'application/vnd.github.v3+json',
+            'User-Agent' => 'Petanco to Flamingo Plugin'
+        ]
+    ]);
+
+    if (is_wp_error($response) || 200 !== wp_remote_retrieve_response_code($response)) {
+        set_transient('petanco_to_flamingo_version_check', 'error', HOUR_IN_SECONDS);
+        wp_send_json_error(__('バージョンチェック中にエラーが発生しました。', 'petanco-to-flamingo'));
+        return;
+    }
+
+    $data = json_decode(wp_remote_retrieve_body($response));
+    if (empty($data->tag_name)) {
+        set_transient('petanco_to_flamingo_version_check', 'error', HOUR_IN_SECONDS);
+        wp_send_json_error(__('最新バージョン情報の取得に失敗しました。', 'petanco-to-flamingo'));
+        return;
+    }
+
+    $latest_version = ltrim($data->tag_name, 'v');
+    set_transient('petanco_to_flamingo_latest_version', $latest_version, DAY_IN_SECONDS);
+    set_transient('petanco_to_flamingo_version_check', time(), DAY_IN_SECONDS);
+
     wp_send_json_success();
 }
 
@@ -689,7 +711,7 @@ function petanco_api_check_permission($request) {
  *
  * @return void
  */
-/*
+
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
@@ -700,14 +722,14 @@ add_action('rest_api_init', function() {
     });
 }, 15);
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
-*/
+
 
 /**
  * 本番のCORS設定
  *
  * @return void
  */
-
+/*
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
@@ -734,3 +756,4 @@ add_action('rest_api_init', function() {
     }, 20);
 });
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
+*/
