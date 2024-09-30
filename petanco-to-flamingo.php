@@ -711,7 +711,7 @@ function petanco_api_check_permission($request) {
  *
  * @return void
  */
-
+/*
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
@@ -722,14 +722,14 @@ add_action('rest_api_init', function() {
     });
 }, 15);
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
-
+*/
 
 /**
  * 本番のCORS設定
  *
  * @return void
  */
-/*
+
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
@@ -756,4 +756,3 @@ add_action('rest_api_init', function() {
     }, 20);
 });
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
-*/
