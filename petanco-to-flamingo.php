@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Petanco to Flamingo
- * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
+ * Plugin URI: https://doc.petanco.net/for-organizer/option/3549/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
  * Version: 1.0.9
  * Author: Petanco
