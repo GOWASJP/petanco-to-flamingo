@@ -782,28 +782,44 @@ petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-fl
 add_action('rest_api_init', function() {
 	remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
 	add_filter('rest_pre_serve_request', function($value) {
-		$current_route = $GLOBALS['wp']->query_vars['rest_route'];
+		$origin = get_http_origin();
+		$allowed_origins = array(
+			'https://petanco.io',
+			'https://petanco.net'
+		);
 
-		// petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
-		if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
-			$origin = get_http_origin();
-			$allowed_origin = 'https://petanco.io';
+		petanco_api_debug_log("Received request from origin: " . $origin);
 
-			if ($origin === $allowed_origin) {
-				header("Access-Control-Allow-Origin: $allowed_origin");
-				header('Access-Control-Allow-Methods: POST, OPTIONS');
-				header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type');
-				header('Access-Control-Allow-Credentials: true');
-			}
+		if (in_array($origin, $allowed_origins)) {
+			header("Access-Control-Allow-Origin: $origin");
+			header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
+			header("Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type");
+			header('Access-Control-Allow-Credentials: true');
 
-			// OPTIONSリクエスト（プリフライトリクエスト）の処理
-			if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-				status_header(200);
-				exit;
-			}
+			petanco_api_debug_log("CORS headers set for origin: " . $origin);
+		} else {
+			petanco_api_debug_log("Origin not allowed: " . $origin);
+		}
+
+		// OPTIONSリクエスト（プリフライトリクエスト）の処理
+		if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+			status_header(200);
+			petanco_api_debug_log("OPTIONS request processed");
+			exit;
 		}
 
 		return $value;
 	}, 20);
 });
+
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
+
+// APIリクエストのデバッグ用フック
+add_action('rest_api_init', function () {
+	add_filter('rest_pre_dispatch', function($result, $server, $request) {
+		petanco_api_debug_log("API Request received: " . $request->get_route());
+		petanco_api_debug_log("Request method: " . $request->get_method());
+		petanco_api_debug_log("Request headers: " . print_r($request->get_headers(), true));
+		return $result;
+	}, 10, 3);
+});
