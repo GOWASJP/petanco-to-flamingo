@@ -3,7 +3,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -31,7 +31,7 @@ define('PETANCO_API_DEBUG', false);
  * プラグインのバージョンを定義する定数
  * バージョン管理とアップデートチェックに使用されます。
  */
-define('PETANCO_TO_FLAMINGO_VERSION', '1.0.6');
+define('PETANCO_TO_FLAMINGO_VERSION', '1.0.7');
 
 /**
  * デフォルトのレート制限値
@@ -377,6 +377,21 @@ function petanco_api_settings_init() {
         'petanco_api_general_section'
     );
 
+    add_settings_section(
+        'petanco_api_download_section',
+        __('ダウンロード', 'petanco-to-flamingo'),
+        'petanco_api_download_section_callback',
+        'petanco-api-settings'
+    );
+
+    add_settings_field(
+        'petanco_api_download_link',
+        __('プラグインのダウンロード', 'petanco-to-flamingo'),
+        'petanco_api_download_link_callback',
+        'petanco-api-settings',
+        'petanco_api_download_section'
+    );
+
 }
 add_action('admin_init', 'petanco_api_settings_init');
 
@@ -445,6 +460,34 @@ function petanco_api_enable_endpoint_callback() {
     });
     </script>
     <?php
+}
+
+/**
+ * ダウンロードセクションの説明文を表示するコールバック関数
+ *
+ * この関数は、設定ページの「ダウンロード」セクションに説明文を追加します。
+ *
+ * @since 1.0.6
+ * @return void
+ */
+function petanco_api_download_section_callback() {
+	echo '<p>' . __('最新バージョンのプラグインをダウンロードします。', 'petanco-to-flamingo') . '</p>';
+}
+
+/**
+ * プラグインのダウンロードリンクを表示するコールバック関数
+ *
+ * この関数は、設定ページにプラグインの最新バージョンをダウンロードするための
+ * リンクボタンと注意事項を表示します。
+ *
+ * @since 1.0.6
+ * @return void
+ */
+function petanco_api_download_link_callback() {
+	$download_url = 'https://github.com/GOWASJP/petanco-to-flamingo/releases/latest';
+	echo '<a href="' . esc_url($download_url) . '" class="button button-primary" target="_blank">' .
+		__('ダウンロード', 'petanco-to-flamingo') . '</a>';
+	echo '<p class="description">' . __('注意: ダウンロード後、既存のプラグインを削除し、新しいバージョンをアップロードしてください。', 'petanco-to-flamingo') . '</p>';
 }
 
 /**
@@ -556,6 +599,7 @@ function petanco_api_check_rate_limit() {
 function petanco_api_version_check_status_callback() {
     $version_check = get_transient('petanco_to_flamingo_version_check');
     $latest_version = get_transient('petanco_to_flamingo_latest_version');
+    $last_check_time = get_transient('petanco_to_flamingo_last_check_time');
 
     echo '<p><strong>' . __('現在のプラグインバージョン:', 'petanco-to-flamingo') . '</strong> ' . PETANCO_TO_FLAMINGO_VERSION . '</p>';
 
@@ -587,8 +631,13 @@ function petanco_api_version_check_status_callback() {
         }
     }
 
-    echo '<button type="button" id="check_version_now" class="button button-secondary">' . __('今すぐチェック', 'petanco-to-flamingo') . '</button>';
+    echo '<button type="button" id="check_version_now" class="button button-secondary"' . ($last_check_time && (time() - $last_check_time < DAY_IN_SECONDS) ? ' disabled' : '') . '>' . __('今すぐチェック', 'petanco-to-flamingo') . '</button>';
     echo '<span id="version_check_message" style="margin-left: 10px; display: none;"></span>';
+
+    if ($last_check_time && (time() - $last_check_time < DAY_IN_SECONDS)) {
+        $next_check_time = $last_check_time + DAY_IN_SECONDS;
+        echo '<p class="description">' . sprintf(__('次回のチェックは %s 以降に可能です。', 'petanco-to-flamingo'), date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $next_check_time)) . '</p>';
+    }
 
     ?>
     <script type="text/javascript">
@@ -609,14 +658,16 @@ function petanco_api_version_check_status_callback() {
                     if (response.success) {
                         message.text('<?php echo esc_js(__('バージョンチェックが完了しました。ページをリロードしてください。', 'petanco-to-flamingo')); ?>').css('color', 'green');
                     } else {
-                        message.text('<?php echo esc_js(__('エラーが発生しました。もう一度お試しください。', 'petanco-to-flamingo')); ?>').css('color', 'red');
+                        message.text(response.data).css('color', 'red');
                     }
                 },
                 error: function() {
                     message.text('<?php echo esc_js(__('エラーが発生しました。もう一度お試しください。', 'petanco-to-flamingo')); ?>').css('color', 'red');
                 },
                 complete: function() {
-                    button.prop('disabled', false);
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
                 }
             });
         });
@@ -704,7 +755,6 @@ function petanco_api_check_permission($request) {
 
     return true;
 }
-
 
 /**
  * テストのCORS設定
