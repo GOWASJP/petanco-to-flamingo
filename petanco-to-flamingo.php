@@ -3,7 +3,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.0.8
+ * Version: 1.0.9
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -31,7 +31,7 @@ define('PETANCO_API_DEBUG', false);
  * プラグインのバージョンを定義する定数
  * バージョン管理とアップデートチェックに使用されます。
  */
-define('PETANCO_TO_FLAMINGO_VERSION', '1.0.8');
+define('PETANCO_TO_FLAMINGO_VERSION', '1.0.9');
 
 /**
  * デフォルトのレート制限値
@@ -779,30 +779,31 @@ petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-fl
  *
  * @return void
  */
-
 add_action('rest_api_init', function() {
-    remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
-    add_filter('rest_pre_serve_request', function($value) {
-        $origin = get_http_origin();
-        $allowed_origin = 'https://petanco.io';
+	remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
+	add_filter('rest_pre_serve_request', function($value) {
+		$current_route = $GLOBALS['wp']->query_vars['rest_route'];
 
-        if ($origin === $allowed_origin) {
-            header("Access-Control-Allow-Origin: $allowed_origin");
-            header('Access-Control-Allow-Methods: POST, OPTIONS');
-            header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type');
-            header('Access-Control-Allow-Credentials: true');
-        } else {
-            header('HTTP/1.1 403 Forbidden');
-            exit;
-        }
+		// petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
+		if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
+			$origin = get_http_origin();
+			$allowed_origin = 'https://petanco.io';
 
-        // OPTIONSリクエスト（プリフライトリクエスト）の処理
-        if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-            status_header(200);
-            exit;
-        }
+			if ($origin === $allowed_origin) {
+				header("Access-Control-Allow-Origin: $allowed_origin");
+				header('Access-Control-Allow-Methods: POST, OPTIONS');
+				header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type');
+				header('Access-Control-Allow-Credentials: true');
+			}
 
-        return $value;
-    }, 20);
+			// OPTIONSリクエスト（プリフライトリクエスト）の処理
+			if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+				status_header(200);
+				exit;
+			}
+		}
+
+		return $value;
+	}, 20);
 });
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
