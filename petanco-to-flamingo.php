@@ -3,7 +3,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.0.7
+ * Version: 1.0.8
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -31,7 +31,7 @@ define('PETANCO_API_DEBUG', false);
  * プラグインのバージョンを定義する定数
  * バージョン管理とアップデートチェックに使用されます。
  */
-define('PETANCO_TO_FLAMINGO_VERSION', '1.0.7');
+define('PETANCO_TO_FLAMINGO_VERSION', '1.0.8');
 
 /**
  * デフォルトのレート制限値
@@ -369,19 +369,19 @@ function petanco_api_settings_init() {
 		'petanco_api_general_section'
 	);
 
-    add_settings_field(
-        'petanco_api_version_check_status',
-        __('バージョンチェック', 'petanco-to-flamingo'),
-        'petanco_api_version_check_status_callback',
-        'petanco-api-settings',
-        'petanco_api_general_section'
-    );
-
     add_settings_section(
         'petanco_api_download_section',
         __('ダウンロード', 'petanco-to-flamingo'),
         'petanco_api_download_section_callback',
         'petanco-api-settings'
+    );
+
+    add_settings_field(
+        'petanco_api_version_check_status',
+        __('バージョンチェック', 'petanco-to-flamingo'),
+        'petanco_api_version_check_status_callback',
+        'petanco-api-settings',
+        'petanco_api_download_section'
     );
 
     add_settings_field(
