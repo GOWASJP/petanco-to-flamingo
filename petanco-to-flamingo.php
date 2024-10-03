@@ -1,7 +1,7 @@
 <?php
 /**
  * Plugin Name: Petanco to Flamingo
- * Plugin URI: https://doc.petanco.net/for-organizer/option/3549/
+ * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
  * Version: 1.0.9
  * Author: Petanco
@@ -181,6 +181,7 @@ function petanco_api_extension_success_notice() {
  */
 function petanco_api_handle_submission($request) {
     $params = $request->get_params();
+    $user_agent = $request->get_header('User-Agent');
 
     $validation_errors = petanco_api_validate_submission($params);
     if (!empty($validation_errors)) {
@@ -196,48 +197,48 @@ function petanco_api_handle_submission($request) {
         );
     }
 
-	$submission_data = array(
-		'channel' => 'petanco',
-		'subject' => sanitize_text_field($params['subject'] ?? ''),
-		'from' => sanitize_text_field($params['name'] ?? '') . ' <' . sanitize_email($params['email'] ?? '') . '>',
-		'from_name' => sanitize_text_field($params['name'] ?? ''),
-		'from_email' => sanitize_email($params['email'] ?? ''),
-		'fields' => array(
-			'subject' => sanitize_text_field($params['subject'] ?? ''),
-			'name' => sanitize_text_field($params['name'] ?? ''),
-			'email' => sanitize_email($params['email'] ?? ''),
-			'tel' => sanitize_text_field($params['tel'] ?? ''),
-			'zip' => sanitize_text_field($params['zip'] ?? ''),
-			'pref' => sanitize_text_field($params['pref'] ?? ''),
-			'city' => sanitize_text_field($params['city'] ?? ''),
-			'address1' => sanitize_text_field($params['address1'] ?? ''),
-			'address2' => sanitize_text_field($params['address2'] ?? ''),
-			'campaign_id' => sanitize_text_field($params['campaign_id'] ?? ''),
-			'benefit_id' => sanitize_text_field($params['benefit_id'] ?? ''),
-			'player_id' => sanitize_text_field($params['player_id'] ?? ''),
-		),
-		'body' => sprintf(
-			"特典: %s\n名前: %s\nメール: %s\n電話番号: %s\n郵便番号: %s\n都道府県: %s\n市区町村: %s\n住所1: %s\n住所2: %s\nキャンペーンID: %s\n特典ID: %s\nプレイヤーID: %s",
-			sanitize_text_field($params['subject'] ?? ''),
-			sanitize_text_field($params['name'] ?? ''),
-			sanitize_email($params['email'] ?? ''),
-			sanitize_text_field($params['tel'] ?? ''),
-			sanitize_text_field($params['zip'] ?? ''),
-			sanitize_text_field($params['pref'] ?? ''),
-			sanitize_text_field($params['city'] ?? ''),
-			sanitize_text_field($params['address1'] ?? ''),
-			sanitize_text_field($params['address2'] ?? ''),
-			sanitize_text_field($params['campaign_id'] ?? ''),
-			sanitize_text_field($params['benefit_id'] ?? ''),
-			sanitize_text_field($params['player_id'] ?? ''),
-		),
-		'meta' => array(
-			'remote_ip' => $_SERVER['REMOTE_ADDR'],
-			'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-		)
-	);
+    $submission_data = array(
+        'channel' => 'petanco',
+        'subject' => sanitize_text_field($params['subject'] ?? ''),
+        'from' => sanitize_text_field($params['name'] ?? '') . ' <' . sanitize_email($params['email'] ?? '') . '>',
+        'from_name' => sanitize_text_field($params['name'] ?? ''),
+        'from_email' => sanitize_email($params['email'] ?? ''),
+        'fields' => array(
+            'subject' => sanitize_text_field($params['subject'] ?? ''),
+            'name' => sanitize_text_field($params['name'] ?? ''),
+            'email' => sanitize_email($params['email'] ?? ''),
+            'tel' => sanitize_text_field($params['tel'] ?? ''),
+            'zip' => sanitize_text_field($params['zip'] ?? ''),
+            'pref' => sanitize_text_field($params['pref'] ?? ''),
+            'city' => sanitize_text_field($params['city'] ?? ''),
+            'address1' => sanitize_text_field($params['address1'] ?? ''),
+            'address2' => sanitize_text_field($params['address2'] ?? ''),
+            'campaign_id' => sanitize_text_field($params['campaign_id'] ?? ''),
+            'benefit_id' => sanitize_text_field($params['benefit_id'] ?? ''),
+            'player_id' => sanitize_text_field($params['player_id'] ?? ''),
+        ),
+        'body' => sprintf(
+            "特典: %s\n名前: %s\nメール: %s\n電話番号: %s\n郵便番号: %s\n都道府県: %s\n市区町村: %s\n住所1: %s\n住所2: %s\nキャンペーンID: %s\n特典ID: %s\nプレイヤーID: %s",
+            sanitize_text_field($params['subject'] ?? ''),
+            sanitize_text_field($params['name'] ?? ''),
+            sanitize_email($params['email'] ?? ''),
+            sanitize_text_field($params['tel'] ?? ''),
+            sanitize_text_field($params['zip'] ?? ''),
+            sanitize_text_field($params['pref'] ?? ''),
+            sanitize_text_field($params['city'] ?? ''),
+            sanitize_text_field($params['address1'] ?? ''),
+            sanitize_text_field($params['address2'] ?? ''),
+            sanitize_text_field($params['campaign_id'] ?? ''),
+            sanitize_text_field($params['benefit_id'] ?? ''),
+            sanitize_text_field($params['player_id'] ?? ''),
+        ),
+        'meta' => array(
+            'remote_ip' => $_SERVER['REMOTE_ADDR'],
+            'user_agent' => $user_agent,
+        )
+    );
 
-	petanco_api_debug_log('Attempting to save submission with data: ' . print_r($submission_data, true));
+    petanco_api_debug_log('Attempting to save submission with data: ' . print_r($submission_data, true));
 
     $submission = Flamingo_Inbound_Message::add($submission_data);
 
@@ -741,6 +742,13 @@ function petanco_api_check_permission($request) {
     $secret_key = $encrypted_key ? petanco_api_decrypt_secret_key($encrypted_key) : '';
 
     $provided_key = $request->get_header('X-Petanco-API-Key');
+    $user_agent = $request->get_header('User-Agent');
+
+    // User-Agentの検証
+    if (empty($user_agent)) {
+        petanco_api_debug_log(__('User-Agentが提供されていません。', 'petanco-to-flamingo'));
+        return new WP_Error('invalid_user_agent', __('有効なUser-Agentが必要です。', 'petanco-to-flamingo'), array('status' => 400));
+    }
 
     if (empty($secret_key) || $provided_key !== $secret_key) {
         petanco_api_debug_log(__('API認証に失敗しました。', 'petanco-to-flamingo'));
@@ -765,13 +773,26 @@ function petanco_api_check_permission($request) {
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
-        header('Access-Control-Allow-Origin: *');
-        header('Access-Control-Allow-Methods: POST');
-        header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type');
+        $current_route = $GLOBALS['wp']->query_vars['rest_route'];
+
+        // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
+        if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
+            header('Access-Control-Allow-Origin: *');
+            header('Access-Control-Allow-Methods: POST, OPTIONS');
+            header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
+
+            // OPTIONSリクエスト（プリフライトリクエスト）の処理
+            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                status_header(200);
+                exit;
+            }
+        }
+
         return $value;
-    });
-}, 15);
-petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
+    }, 15);
+});
+petanco_api_debug_log(__('テスト用CORS設定が適用されました。', 'petanco-to-flamingo'));
+
 */
 
 /**
@@ -780,46 +801,30 @@ petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-fl
  * @return void
  */
 add_action('rest_api_init', function() {
-	remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
-	add_filter('rest_pre_serve_request', function($value) {
-		$origin = get_http_origin();
-		$allowed_origins = array(
-			'https://petanco.io',
-			'https://petanco.net'
-		);
+    remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
+    add_filter('rest_pre_serve_request', function($value) {
+        $current_route = $GLOBALS['wp']->query_vars['rest_route'];
 
-		petanco_api_debug_log("Received request from origin: " . $origin);
+        // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
+        if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
+            $origin = get_http_origin();
+            $allowed_origin = 'https://petanco.io';
 
-		if (in_array($origin, $allowed_origins)) {
-			header("Access-Control-Allow-Origin: $origin");
-			header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-			header("Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type");
-			header('Access-Control-Allow-Credentials: true');
+            if ($origin === $allowed_origin) {
+                header("Access-Control-Allow-Origin: $allowed_origin");
+                header('Access-Control-Allow-Methods: POST, OPTIONS');
+                header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
+                header('Access-Control-Allow-Credentials: true');
+            }
 
-			petanco_api_debug_log("CORS headers set for origin: " . $origin);
-		} else {
-			petanco_api_debug_log("Origin not allowed: " . $origin);
-		}
+            // OPTIONSリクエスト（プリフライトリクエスト）の処理
+            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+                status_header(200);
+                exit;
+            }
+        }
 
-		// OPTIONSリクエスト（プリフライトリクエスト）の処理
-		if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-			status_header(200);
-			petanco_api_debug_log("OPTIONS request processed");
-			exit;
-		}
-
-		return $value;
-	}, 20);
+        return $value;
+    }, 20);
 });
-
 petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
-
-// APIリクエストのデバッグ用フック
-add_action('rest_api_init', function () {
-	add_filter('rest_pre_dispatch', function($result, $server, $request) {
-		petanco_api_debug_log("API Request received: " . $request->get_route());
-		petanco_api_debug_log("Request method: " . $request->get_method());
-		petanco_api_debug_log("Request headers: " . print_r($request->get_headers(), true));
-		return $result;
-	}, 10, 3);
-});
