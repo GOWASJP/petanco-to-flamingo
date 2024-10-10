@@ -3,7 +3,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.0.9
+ * Version: 1.1.0
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -18,20 +18,20 @@
 
 // 直接アクセスされた場合は終了します。
 if (!defined('ABSPATH')) {
-	exit;
+    exit;
 }
 
 /**
  * デバッグモードを制御する定数
  * trueの場合、デバッグログが出力されます。
  */
-define('PETANCO_API_DEBUG', false);
+define('PETANCO_API_DEBUG', true);
 
 /**
  * プラグインのバージョンを定義する定数
  * バージョン管理とアップデートチェックに使用されます。
  */
-define('PETANCO_TO_FLAMINGO_VERSION', '1.0.9');
+define('PETANCO_TO_FLAMINGO_VERSION', '1.1.0');
 
 /**
  * デフォルトのレート制限値
@@ -51,9 +51,18 @@ define('PETANCO_DEFAULT_RATE_LIMIT', 300);
  * @return void
  */
 function petanco_api_debug_log($message) {
-	if (PETANCO_API_DEBUG) {
-		error_log(sprintf(__('Petanco to Flamingo: %s', 'petanco-to-flamingo'), $message));
-	}
+    if (PETANCO_API_DEBUG) {
+        // タイムゾーンを東京に設定
+        date_default_timezone_set('Asia/Tokyo');
+        
+        // 現在の日本時間を取得
+        $timestamp = date('Y-m-d H:i:s');
+        
+        // ログメッセージにタイムスタンプを追加
+        $log_message = sprintf("[%s] %s: %s", $timestamp, __('Petanco to Flamingo', 'petanco-to-flamingo'), $message);
+        
+        error_log($log_message);
+    }
 }
 
 /**
@@ -79,7 +88,7 @@ if (!is_ssl()) {
  */
 function petanco_api_extension_activate() {
     petanco_api_debug_log(__('プラグイン有効化プロセスを開始します。', 'petanco-to-flamingo'));
-    
+
     if (!is_ssl()) {
         petanco_api_debug_log(__('SSL環境が検出されませんでした。プラグインを無効化します。', 'petanco-to-flamingo'));
         deactivate_plugins(plugin_basename(__FILE__));
@@ -110,7 +119,7 @@ register_activation_hook(__FILE__, 'petanco_api_extension_activate');
 function petanco_api_extension_init() {
     petanco_api_debug_log(__('初期化が開始されました。', 'petanco-to-flamingo'));
 
-	// SSL環境の再確認
+  // SSL環境の再確認
     if (!is_ssl() || !get_option('petanco_api_ssl_enabled', false)) {
         petanco_api_debug_log(__('警告: SSL環境が検出されないか、有効化されていません。', 'petanco-to-flamingo'));
         add_action('admin_notices', 'petanco_api_ssl_warning_notice');
@@ -154,8 +163,8 @@ function petanco_api_ssl_warning_notice() {
  * @return void
  */
 function petanco_api_extension_admin_notice() {
-	echo '<div class="error"><p>' . __('Petanco to Flamingoを使用するには、Flamingoプラグインをインストールし、有効化する必要があります。', 'petanco-to-flamingo') . '</p></div>';
-	petanco_api_debug_log(__('管理エラー通知が表示されました。', 'petanco-to-flamingo'));
+    echo '<div class="error"><p>' . __('Petanco to Flamingoを使用するには、Flamingoプラグインをインストールし、有効化する必要があります。', 'petanco-to-flamingo') . '</p></div>';
+    petanco_api_debug_log(__('管理エラー通知が表示されました。', 'petanco-to-flamingo'));
 }
 
 /**
@@ -164,11 +173,11 @@ function petanco_api_extension_admin_notice() {
  * @return void
  */
 function petanco_api_extension_success_notice() {
-	if (get_option('petanco_api_extension_activated')) {
-		echo '<div class="updated"><p>' . __('Petanco to Flamingoは正常にアクティベートされ、Flamingoが検出されました。', 'petanco-to-flamingo') . '</p></div>';
-		petanco_api_debug_log(__('アクティベート成功通知', 'petanco-to-flamingo'));
-		delete_option('petanco_api_extension_activated');
-	}
+    if (get_option('petanco_api_extension_activated')) {
+        echo '<div class="updated"><p>' . __('Petanco to Flamingoは正常にアクティベートされ、Flamingoが検出されました。', 'petanco-to-flamingo') . '</p></div>';
+        petanco_api_debug_log(__('アクティベート成功通知', 'petanco-to-flamingo'));
+        delete_option('petanco_api_extension_activated');
+    }
 }
 
 /**
@@ -275,21 +284,21 @@ function petanco_api_handle_submission($request) {
  * @return array バリデーションエラーの配列。エラーがない場合は空の配列
  */
 function petanco_api_validate_submission($params) {
-	$required_fields = ['subject', 'name', 'email', 'tel', 'zip', 'pref', 'city', 'address1', 'campaign_id', 'benefit_id', 'player_id'];
-	$errors = array();
+    $required_fields = ['subject', 'name', 'email', 'tel', 'zip', 'pref', 'city', 'address1', 'campaign_id', 'benefit_id', 'player_id'];
+    $errors = array();
 
-	foreach ($required_fields as $field) {
-		if (empty($params[$field])) {
-			$errors[$field] = sprintf(__('%sは必須です。', 'petanco-to-flamingo'), $field);
-		}
-	}
+    foreach ($required_fields as $field) {
+        if (empty($params[$field])) {
+            $errors[$field] = sprintf(__('%sは必須です。', 'petanco-to-flamingo'), $field);
+        }
+    }
 
-	// 最小限のメールアドレス形式チェック
-	if (!empty($params['email']) && !is_email($params['email'])) {
-		$errors['email'] = __('有効なメールアドレスを入力してください。', 'petanco-to-flamingo');
-	}
+    // 最小限のメールアドレス形式チェック
+    if (!empty($params['email']) && !is_email($params['email'])) {
+        $errors['email'] = __('有効なメールアドレスを入力してください。', 'petanco-to-flamingo');
+    }
 
-	return $errors;
+    return $errors;
 }
 
 /**
@@ -298,14 +307,14 @@ function petanco_api_validate_submission($params) {
   * @return void
   */
 function petanco_api_add_settings_page() {
-	add_submenu_page(
-		'flamingo',
-		__('Petanco連携設定', 'petanco-to-flamingo'),
-		__('Petanco連携設定', 'petanco-to-flamingo'),
-		'manage_options',
-		'petanco-api-settings',
-		'petanco_api_settings_page'
-	);
+    add_submenu_page(
+        'flamingo',
+        __('Petanco連携設定', 'petanco-to-flamingo'),
+        __('Petanco連携設定', 'petanco-to-flamingo'),
+        'manage_options',
+        'petanco-api-settings',
+        'petanco_api_settings_page'
+    );
 }
 add_action('admin_menu', 'petanco_api_add_settings_page');
 
@@ -315,19 +324,19 @@ add_action('admin_menu', 'petanco_api_add_settings_page');
  * @return void
  */
 function petanco_api_settings_page() {
-	?>
-	<div class="wrap">
-		<h1><?php echo esc_html(get_admin_page_title()); ?></h1>
-		<?php settings_errors(); ?>
-		<form action="options.php" method="post">
-			<?php
-			settings_fields('petanco_api_options');
-			do_settings_sections('petanco-api-settings');
-			submit_button(__('保存', 'petanco-to-flamingo'));
-			?>
-		</form>
-	</div>
-	<?php
+?>
+    <div class="wrap">
+        <h1><?php echo esc_html(get_admin_page_title()); ?></h1>
+        <?php settings_errors(); ?>
+        <form action="options.php" method="post">
+            <?php
+                settings_fields('petanco_api_options');
+                do_settings_sections('petanco-api-settings');
+                submit_button(__('保存', 'petanco-to-flamingo'));
+            ?>
+        </form>
+    </div>
+<?php
 }
 
 /**
@@ -336,39 +345,39 @@ function petanco_api_settings_page() {
  * @return void
  */
 function petanco_api_settings_init() {
-	register_setting('petanco_api_options', 'petanco_api_settings', 'petanco_api_sanitize_settings');
+    register_setting('petanco_api_options', 'petanco_api_settings', 'petanco_api_sanitize_settings');
 
-	add_settings_section(
-		'petanco_api_general_section',
-		__('設定', 'petanco-to-flamingo'),
-		'petanco_api_general_section_callback',
-		'petanco-api-settings'
-	);
+    add_settings_section(
+        'petanco_api_general_section',
+        __('設定', 'petanco-to-flamingo'),
+        'petanco_api_general_section_callback',
+        'petanco-api-settings'
+    );
 
-	// 既存のフィールド
-	add_settings_field(
-		'petanco_api_enable_endpoint',
-		__('APIエンドポイントの有効化', 'petanco-to-flamingo'),
-		'petanco_api_enable_endpoint_callback',
-		'petanco-api-settings',
-		'petanco_api_general_section'
-	);
+    // 既存のフィールド
+    add_settings_field(
+        'petanco_api_enable_endpoint',
+        __('APIエンドポイントの有効化', 'petanco-to-flamingo'),
+        'petanco_api_enable_endpoint_callback',
+        'petanco-api-settings',
+        'petanco_api_general_section'
+    );
 
-	add_settings_field(
-		'petanco_api_secret_key',
-		__('シークレットキー', 'petanco-to-flamingo'),
-		'petanco_api_secret_key_callback',
-		'petanco-api-settings',
-		'petanco_api_general_section'
-	);
+    add_settings_field(
+        'petanco_api_secret_key',
+        __('シークレットキー', 'petanco-to-flamingo'),
+        'petanco_api_secret_key_callback',
+        'petanco-api-settings',
+        'petanco_api_general_section'
+    );
 
-	add_settings_field(
-		'petanco_api_rate_limit',
-		__('レート制限', 'petanco-to-flamingo'),
-		'petanco_api_rate_limit_callback',
-		'petanco-api-settings',
-		'petanco_api_general_section'
-	);
+    add_settings_field(
+        'petanco_api_rate_limit',
+        __('レート制限', 'petanco-to-flamingo'),
+        'petanco_api_rate_limit_callback',
+        'petanco-api-settings',
+        'petanco_api_general_section'
+    );
 
     add_settings_section(
         'petanco_api_download_section',
@@ -405,7 +414,7 @@ add_action('admin_init', 'petanco_api_settings_init');
  * @return void
  */
 function petanco_api_general_section_callback() {
-	echo '<p>' . __('Petanco連携の全般的な設定', 'petanco-to-flamingo') . '</p>';
+    echo '<p>' . __('Petanco連携の全般的な設定', 'petanco-to-flamingo') . '</p>';
 }
 
 /**
@@ -472,7 +481,7 @@ function petanco_api_enable_endpoint_callback() {
  * @return void
  */
 function petanco_api_download_section_callback() {
-	echo '<p>' . __('最新バージョンのプラグインをダウンロードします。', 'petanco-to-flamingo') . '</p>';
+    echo '<p>' . __('最新バージョンのプラグインをダウンロードします。', 'petanco-to-flamingo') . '</p>';
 }
 
 /**
@@ -485,10 +494,10 @@ function petanco_api_download_section_callback() {
  * @return void
  */
 function petanco_api_download_link_callback() {
-	$download_url = 'https://github.com/GOWASJP/petanco-to-flamingo/releases/latest';
-	echo '<a href="' . esc_url($download_url) . '" class="button button-primary" target="_blank">' .
-		__('ダウンロード', 'petanco-to-flamingo') . '</a>';
-	echo '<p class="description">' . __('注意: ダウンロード後、既存のプラグインを削除し、新しいバージョンをアップロードしてください。', 'petanco-to-flamingo') . '</p>';
+    $download_url = 'https://github.com/GOWASJP/petanco-to-flamingo/releases/latest';
+    echo '<a href="' . esc_url($download_url) . '" class="button button-primary" target="_blank">' .
+    __('ダウンロード', 'petanco-to-flamingo') . '</a>';
+    echo '<p class="description">' . __('注意: ダウンロード後、既存のプラグインを削除し、新しいバージョンをアップロードしてください。', 'petanco-to-flamingo') . '</p>';
 }
 
 /**
@@ -545,7 +554,7 @@ function petanco_api_sanitize_settings($input) {
     $sanitized_input['enable_endpoint'] = isset($input['enable_endpoint']) ? '1' : '0';
     $sanitized_input['secret_key'] = !empty($input['secret_key']) ? petanco_api_encrypt_secret_key(sanitize_text_field($input['secret_key'])) : '';
     $sanitized_input['rate_limit'] = absint($input['rate_limit']);
-    
+
     return $sanitized_input;
 }
 
@@ -611,18 +620,18 @@ function petanco_api_version_check_status_callback() {
     } else {
         $check_time = date_i18n(get_option('date_format') . ' ' . get_option('time_format'), $version_check);
         echo '<p>' . sprintf(__('最終バージョンチェック: %s', 'petanco-to-flamingo'), $check_time) . '</p>';
-        
+
         if ($latest_version) {
             echo '<p><strong>' . __('最新バージョン:', 'petanco-to-flamingo') . '</strong> ' . esc_html($latest_version) . '</p>';
-            
+
             if (version_compare(PETANCO_TO_FLAMINGO_VERSION, $latest_version, '<')) {
                 echo '<p style="color: orange;">' . __('新しいバージョンが利用可能です。', 'petanco-to-flamingo') . '</p>';
-                
+
                 // ダウンロードリンクの追加
                 $download_url = 'https://github.com/GOWASJP/petanco-to-flamingo/releases/latest';
-                echo '<p><a href="' . esc_url($download_url) . '" class="button button-primary" target="_blank">' . 
+                echo '<p><a href="' . esc_url($download_url) . '" class="button button-primary" target="_blank">' .
                     __('最新バージョンをダウンロード', 'petanco-to-flamingo') . '</a></p>';
-                
+
                 echo '<p class="description">' . __('注意: ダウンロード後、既存のプラグインを削除し、新しいバージョンをアップロードしてください。', 'petanco-to-flamingo') . '</p>';
             } else {
                 echo '<p style="color: green;">' . __('プラグインは最新です。', 'petanco-to-flamingo') . '</p>';
@@ -769,52 +778,60 @@ function petanco_api_check_permission($request) {
  *
  * @return void
  */
-/*
-add_action('rest_api_init', function() {
-    remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
-    add_filter('rest_pre_serve_request', function($value) {
-        $current_route = $GLOBALS['wp']->query_vars['rest_route'];
 
-        // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
-        if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
-            header('Access-Control-Allow-Origin: *');
-            header('Access-Control-Allow-Methods: POST, OPTIONS');
-            header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
+// add_action('rest_api_init', function() {
+//     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
+//     add_filter('rest_pre_serve_request', function($value) {
+//         $current_route = $GLOBALS['wp']->query_vars['rest_route'];
 
-            // OPTIONSリクエスト（プリフライトリクエスト）の処理
-            if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
-                status_header(200);
-                exit;
-            }
-        }
+//         // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
+//         if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
+//             header('Access-Control-Allow-Origin: *');
+//             header('Access-Control-Allow-Methods: POST, OPTIONS');
+//             header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
 
-        return $value;
-    }, 15);
-});
-petanco_api_debug_log(__('テスト用CORS設定が適用されました。', 'petanco-to-flamingo'));
+//             // OPTIONSリクエスト（プリフライトリクエスト）の処理
+//             if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+//                 status_header(200);
+//                 exit;
+//             }
+//         }
 
-*/
+//         return $value;
+//     }, 15);
+// });
+// petanco_api_debug_log(__('テスト用CORS設定が適用されました。', 'petanco-to-flamingo'));
+
 
 /**
  * 本番のCORS設定
  *
  * @return void
  */
+
 add_action('rest_api_init', function() {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function($value) {
         $current_route = $GLOBALS['wp']->query_vars['rest_route'];
-
+        petanco_api_debug_log(__("checkStart $current_route",'petanco-to-flamingo'));
         // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
         if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
             $origin = get_http_origin();
             $allowed_origin = 'https://petanco.io';
 
-            if ($origin === $allowed_origin) {
+            petanco_api_debug_log(__("受信したオリジン: " . ($origin ? $origin : "null"), 'petanco-to-flamingo'));
+
+            if ($origin && $origin === $allowed_origin) {
                 header("Access-Control-Allow-Origin: $allowed_origin");
                 header('Access-Control-Allow-Methods: POST, OPTIONS');
                 header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
                 header('Access-Control-Allow-Credentials: true');
+                petanco_api_debug_log(__("許可されたオリジンに設定されたCORSヘッダー", 'petanco-to-flamingo'));
+            } else {
+                petanco_api_debug_log(__("リクエストが拒否されました: origin mismatch または null", 'petanco-to-flamingo'));
+                status_header(403);
+                echo json_encode(array('error' => 'リジン不可'));
+                exit;
             }
 
             // OPTIONSリクエスト（プリフライトリクエスト）の処理
@@ -827,4 +844,4 @@ add_action('rest_api_init', function() {
         return $value;
     }, 20);
 });
-petanco_api_debug_log(__('CORS設定が適用されました。', 'petanco-to-flamingo'));
+petanco_api_debug_log(__('厳格なCORS設定が適用されました。', 'petanco-to-flamingo'));
