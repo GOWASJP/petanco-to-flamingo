@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
  * デバッグモードを制御する定数
  * trueの場合、デバッグログが出力されます。
  */
-define('PETANCO_API_DEBUG', true);
+define('PETANCO_API_DEBUG', false);
 
 /**
  * プラグインのバージョンを定義する定数
