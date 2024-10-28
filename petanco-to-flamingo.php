@@ -830,7 +830,7 @@ add_action('rest_api_init', function() {
             } else {
                 petanco_api_debug_log(__("リクエストが拒否されました: origin mismatch または null", 'petanco-to-flamingo'));
                 status_header(403);
-                echo json_encode(array('error' => 'リジン不可'));
+                echo json_encode(array('error' => 'オリジン不可'));
                 exit;
             }
 
