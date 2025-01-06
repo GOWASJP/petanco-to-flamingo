@@ -3,7 +3,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -31,7 +31,7 @@ define('PETANCO_API_DEBUG', false);
  * プラグインのバージョンを定義する定数
  * バージョン管理とアップデートチェックに使用されます。
  */
-define('PETANCO_TO_FLAMINGO_VERSION', '1.1.0');
+define('PETANCO_TO_FLAMINGO_VERSION', '1.1.1');
 
 /**
  * デフォルトのレート制限値
@@ -119,15 +119,12 @@ register_activation_hook(__FILE__, 'petanco_api_extension_activate');
 function petanco_api_extension_init() {
     petanco_api_debug_log(__('初期化が開始されました。', 'petanco-to-flamingo'));
 
-  // SSL環境の再確認
+    // SSL環境の再確認
     if (!is_ssl() || !get_option('petanco_api_ssl_enabled', false)) {
         petanco_api_debug_log(__('警告: SSL環境が検出されないか、有効化されていません。', 'petanco-to-flamingo'));
         add_action('admin_notices', 'petanco_api_ssl_warning_notice');
         return;
     }
-
-    // 多言語対応の準備
-    load_plugin_textdomain('petanco-to-flamingo', false, dirname(plugin_basename(__FILE__)) . '/languages');
 
     // Flamingoプラグインの存在確認
     if (!defined('FLAMINGO_VERSION')) {
@@ -144,7 +141,17 @@ function petanco_api_extension_init() {
     // 成功通知の表示
     add_action('admin_notices', 'petanco_api_extension_success_notice');
 }
-add_action('plugins_loaded', 'petanco_api_extension_init', 20);
+add_action('init', 'petanco_api_extension_init', 20);
+
+/**
+ * 翻訳ファイルの読み込み
+ *
+ * @return void
+ */
+function petanco_api_load_textdomain() {
+    load_plugin_textdomain('petanco-to-flamingo', false, dirname(plugin_basename(__FILE__)) . '/languages');
+}
+add_action('init', 'petanco_api_load_textdomain', 0);
 
 /**
  * SSL警告通知
