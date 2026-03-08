@@ -972,13 +972,18 @@ add_action('rest_api_init', function () {
             petanco_api_debug_log_early("受信したオリジン: " . ($origin ? $origin : "null"), 'petanco-to-flamingo');
 
             if ($origin && in_array($origin, $allowed_origins, true)) {
+                // ブラウザからの許可されたOrigin → CORSヘッダー設定
                 header("Access-Control-Allow-Origin: $origin");
                 header('Access-Control-Allow-Methods: POST, OPTIONS');
                 header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
                 header('Access-Control-Allow-Credentials: true');
                 petanco_api_debug_log_early("許可されたオリジンに設定されたCORSヘッダー", 'petanco-to-flamingo');
+            } elseif (!$origin) {
+                // サーバー間通信（Originなし）→ APIキー認証済みなので通す
+                petanco_api_debug_log_early("サーバー間通信: Originヘッダーなし、APIキー認証で許可", 'petanco-to-flamingo');
             } else {
-                petanco_api_debug_log_early("リクエストが拒否されました: origin mismatch または null", 'petanco-to-flamingo');
+                // 不正なOrigin → 拒否
+                petanco_api_debug_log_early("リクエストが拒否されました: 不正なOrigin: " . $origin, 'petanco-to-flamingo');
                 status_header(403);
                 echo json_encode(array('error' => __('許可されていないオリジンです。', 'petanco-to-flamingo')));
                 exit;
