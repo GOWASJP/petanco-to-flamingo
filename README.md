@@ -70,10 +70,10 @@
   | `campaign_id` | string | ○    | キャンペーン ID                            |
   | `benefit_id`  | string | ○    | 特典 ID                                    |
   | `player_id`   | string | ○    | プレイヤー ID                              |
-  | `zip`         | string |      | 郵便番号                                   |
-  | `city`        | string |      | 市区町村                                   |
+  | `zip`         | string | ○    | 郵便番号（KR の場合は `"-"` 可）           |
+  | `city`        | string | ○    | 市区町村（KR の場合は `pref` 値で代替可）  |
+  | `country`     | string | ○    | 国コード（ISO 3166-1 alpha-2）             |
   | `address2`    | string |      | 住所 2                                     |
-  | `country`     | string |      | 国                                         |
   | `language`    | string |      | ラベル言語（`ja` / `en` / `ko`、デフォルト: `ja`） |
 
   リクエスト例:
@@ -172,7 +172,7 @@
 
 - このプラグインを使用するには、Flamingo（バージョン 2.5 以降）プラグインがインストールされ、有効化されている必要があります。
 - SSL 環境でのみ動作します。非 SSL 環境ではプラグインが自動的に無効化されます。
-- CORS により `https://petanco.io` 以外のオリジンからのリクエストは拒否されます。
+- CORS により `https://petanco.io` および `https://petanco.net` 以外のオリジンからのリクエストは拒否されます。
 
 ## インストール方法
 

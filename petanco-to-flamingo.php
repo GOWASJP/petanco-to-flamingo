@@ -404,7 +404,7 @@ function petanco_api_handle_submission($request)
  */
 function petanco_api_validate_submission($params)
 {
-    $required_fields = ['subject', 'name', 'email', 'tel', 'pref', 'address1', 'campaign_id', 'benefit_id', 'player_id'];
+    $required_fields = ['subject', 'name', 'email', 'tel', 'zip', 'pref', 'city', 'address1', 'country', 'campaign_id', 'benefit_id', 'player_id'];
     $errors = array();
 
     foreach ($required_fields as $field) {
