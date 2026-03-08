@@ -4,7 +4,7 @@
  * Plugin Name: Petanco to Flamingo
  * Plugin URI: https://doc.petanco.net/for-organizer/option/3150/
  * Description: Petancoから送信された応募データをFlamingoに保存します。
- * Version: 1.1.2
+ * Version: 1.2.0
  * Author: Petanco
  * Author URI: https://petanco.net
  * License: GPL v2 or later
@@ -40,7 +40,7 @@ define('PETANCO_API_DEBUG', false);
  * プラグインのバージョンを定義する定数
  * バージョン管理とアップデートチェックに使用されます。
  */
-define('PETANCO_TO_FLAMINGO_VERSION', '1.1.2');
+define('PETANCO_TO_FLAMINGO_VERSION', '1.2.0');
 
 /**
  * デフォルトのレート制限値
@@ -54,14 +54,14 @@ define('PETANCO_TO_FLAMINGO_VERSION', '1.1.2');
 define('PETANCO_DEFAULT_RATE_LIMIT', 300);
 
 /**
- * 翻訳ファイルの読み込み - init フックで実行
+ * 翻訳ファイルの読み込み - plugins_loaded フックの早い段階で実行
+ * SSL チェックや有効化フックでも翻訳を利用できるようにするため、優先度1で読み込む
  */
 function petanco_api_load_textdomain()
 {
     load_plugin_textdomain(PETANCO_TEXT_DOMAIN, false, dirname(plugin_basename(__FILE__)) . '/languages');
 }
-// plugins_loaded ではなく init で実行
-add_action('init', 'petanco_api_load_textdomain', 5);
+add_action('plugins_loaded', 'petanco_api_load_textdomain', 1);
 
 /**
  * デバッグログ関数 - 翻訳関数を使用しないバージョン
@@ -102,10 +102,14 @@ function petanco_api_check_ssl_environment()
     if (!is_ssl()) {
         petanco_api_debug_log_early('SSL環境が検出されませんでした。プラグインを無効化します。');
         deactivate_plugins(plugin_basename(__FILE__));
-        wp_die('このプラグインはSSL環境でのみ使用できます。プラグインを有効化するには、SSLを有効にしてください。', 'プラグイン有効化エラー', array('back_link' => true));
+        wp_die(
+            __('このプラグインはSSL環境でのみ使用できます。プラグインを有効化するには、SSLを有効にしてください。', 'petanco-to-flamingo'),
+            __('プラグイン有効化エラー', 'petanco-to-flamingo'),
+            array('back_link' => true)
+        );
     }
 }
-add_action('plugins_loaded', 'petanco_api_check_ssl_environment', 5); // 翻訳ロード前の優先度5で実行
+add_action('plugins_loaded', 'petanco_api_check_ssl_environment', 5); // テキストドメイン読み込み（優先度1）の後に実行
 
 
 /**
@@ -116,10 +120,17 @@ function petanco_api_extension_activate()
 {
     petanco_api_debug_log_early('プラグイン有効化プロセスを開始します。');
 
+    // 有効化フックではテキストドメインが未読み込みのため、手動で読み込む
+    load_plugin_textdomain(PETANCO_TEXT_DOMAIN, false, dirname(plugin_basename(__FILE__)) . '/languages');
+
     if (!is_ssl()) {
         petanco_api_debug_log_early('SSL環境が検出されませんでした。プラグインを無効化します。');
         deactivate_plugins(plugin_basename(__FILE__));
-        wp_die('このプラグインはSSL環境でのみ使用できます。プラグインを有効化するには、SSLを有効にしてください。', 'プラグイン有効化エラー', array('back_link' => true));
+        wp_die(
+            __('このプラグインはSSL環境でのみ使用できます。プラグインを有効化するには、SSLを有効にしてください。', 'petanco-to-flamingo'),
+            __('プラグイン有効化エラー', 'petanco-to-flamingo'),
+            array('back_link' => true)
+        );
     } else {
         petanco_api_debug_log_early('SSL環境が正常に検出されました。プラグインを有効化します。');
         update_option('petanco_api_ssl_enabled', true);
@@ -223,6 +234,65 @@ function petanco_api_extension_success_notice()
 }
 
 /**
+ * 言語に応じた body ラベルを返す
+ *
+ * @param string $language 言語コード（'ja', 'en', 'ko'）
+ * @return array ラベルの連想配列
+ */
+function petanco_api_get_body_labels($language = 'ja')
+{
+    $labels = array(
+        'ja' => array(
+            'subject'     => '特典',
+            'name'        => '名前',
+            'email'       => 'メール',
+            'tel'         => '電話番号',
+            'zip'         => '郵便番号',
+            'country'     => '国',
+            'pref'        => '都道府県',
+            'city'        => '市区町村',
+            'address1'    => '住所1',
+            'address2'    => '住所2',
+            'campaign_id' => 'キャンペーンID',
+            'benefit_id'  => '特典ID',
+            'player_id'   => 'プレイヤーID',
+        ),
+        'en' => array(
+            'subject'     => 'Benefit',
+            'name'        => 'Name',
+            'email'       => 'Email',
+            'tel'         => 'Phone',
+            'zip'         => 'Postal Code',
+            'country'     => 'Country',
+            'pref'        => 'State/Province',
+            'city'        => 'City',
+            'address1'    => 'Address 1',
+            'address2'    => 'Address 2',
+            'campaign_id' => 'Campaign ID',
+            'benefit_id'  => 'Benefit ID',
+            'player_id'   => 'Player ID',
+        ),
+        'ko' => array(
+            'subject'     => '혜택',
+            'name'        => '이름',
+            'email'       => '이메일',
+            'tel'         => '전화번호',
+            'zip'         => '우편번호',
+            'country'     => '국가',
+            'pref'        => '시/도',
+            'city'        => '시/군/구',
+            'address1'    => '주소 1',
+            'address2'    => '주소 2',
+            'campaign_id' => '캠페인 ID',
+            'benefit_id'  => '혜택 ID',
+            'player_id'   => '플레이어 ID',
+        ),
+    );
+
+    return $labels[$language] ?? $labels['ja'];
+}
+
+/**
  * フォーム送信ハンドラ
  *
  * 受信したデータを検証し、Flamingo に保存します。
@@ -249,6 +319,9 @@ function petanco_api_handle_submission($request)
         );
     }
 
+    $language = sanitize_text_field($params['language'] ?? 'ja');
+    $labels = petanco_api_get_body_labels($language);
+
     $submission_data = array(
         'channel' => 'petanco',
         'subject' => sanitize_text_field($params['subject'] ?? ''),
@@ -265,24 +338,27 @@ function petanco_api_handle_submission($request)
             'city' => sanitize_text_field($params['city'] ?? ''),
             'address1' => sanitize_text_field($params['address1'] ?? ''),
             'address2' => sanitize_text_field($params['address2'] ?? ''),
+            'country' => sanitize_text_field($params['country'] ?? ''),
+            'language' => $language,
             'campaign_id' => sanitize_text_field($params['campaign_id'] ?? ''),
             'benefit_id' => sanitize_text_field($params['benefit_id'] ?? ''),
             'player_id' => sanitize_text_field($params['player_id'] ?? ''),
         ),
         'body' => sprintf(
-            "特典: %s\n名前: %s\nメール: %s\n電話番号: %s\n郵便番号: %s\n都道府県: %s\n市区町村: %s\n住所1: %s\n住所2: %s\nキャンペーンID: %s\n特典ID: %s\nプレイヤーID: %s",
-            sanitize_text_field($params['subject'] ?? ''),
-            sanitize_text_field($params['name'] ?? ''),
-            sanitize_email($params['email'] ?? ''),
-            sanitize_text_field($params['tel'] ?? ''),
-            sanitize_text_field($params['zip'] ?? ''),
-            sanitize_text_field($params['pref'] ?? ''),
-            sanitize_text_field($params['city'] ?? ''),
-            sanitize_text_field($params['address1'] ?? ''),
-            sanitize_text_field($params['address2'] ?? ''),
-            sanitize_text_field($params['campaign_id'] ?? ''),
-            sanitize_text_field($params['benefit_id'] ?? ''),
-            sanitize_text_field($params['player_id'] ?? ''),
+            "%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s\n%s: %s",
+            $labels['subject'], sanitize_text_field($params['subject'] ?? ''),
+            $labels['name'], sanitize_text_field($params['name'] ?? ''),
+            $labels['email'], sanitize_email($params['email'] ?? ''),
+            $labels['tel'], sanitize_text_field($params['tel'] ?? ''),
+            $labels['zip'], sanitize_text_field($params['zip'] ?? ''),
+            $labels['country'], sanitize_text_field($params['country'] ?? ''),
+            $labels['pref'], sanitize_text_field($params['pref'] ?? ''),
+            $labels['city'], sanitize_text_field($params['city'] ?? ''),
+            $labels['address1'], sanitize_text_field($params['address1'] ?? ''),
+            $labels['address2'], sanitize_text_field($params['address2'] ?? ''),
+            $labels['campaign_id'], sanitize_text_field($params['campaign_id'] ?? ''),
+            $labels['benefit_id'], sanitize_text_field($params['benefit_id'] ?? ''),
+            $labels['player_id'], sanitize_text_field($params['player_id'] ?? '')
         ),
         'meta' => array(
             'remote_ip' => $_SERVER['REMOTE_ADDR'],
@@ -328,7 +404,7 @@ function petanco_api_handle_submission($request)
  */
 function petanco_api_validate_submission($params)
 {
-    $required_fields = ['subject', 'name', 'email', 'tel', 'zip', 'pref', 'city', 'address1', 'campaign_id', 'benefit_id', 'player_id'];
+    $required_fields = ['subject', 'name', 'email', 'tel', 'pref', 'address1', 'campaign_id', 'benefit_id', 'player_id'];
     $errors = array();
 
     foreach ($required_fields as $field) {
@@ -891,12 +967,12 @@ add_action('rest_api_init', function () {
         // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
         if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
             $origin = get_http_origin();
-            $allowed_origin = 'https://petanco.io';
+            $allowed_origins = array('https://petanco.io', 'https://petanco.net');
 
             petanco_api_debug_log_early("受信したオリジン: " . ($origin ? $origin : "null"), 'petanco-to-flamingo');
 
-            if ($origin && $origin === $allowed_origin) {
-                header("Access-Control-Allow-Origin: $allowed_origin");
+            if ($origin && in_array($origin, $allowed_origins, true)) {
+                header("Access-Control-Allow-Origin: $origin");
                 header('Access-Control-Allow-Methods: POST, OPTIONS');
                 header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
                 header('Access-Control-Allow-Credentials: true');
@@ -904,7 +980,7 @@ add_action('rest_api_init', function () {
             } else {
                 petanco_api_debug_log_early("リクエストが拒否されました: origin mismatch または null", 'petanco-to-flamingo');
                 status_header(403);
-                echo json_encode(array('error' => 'オリジン不可'));
+                echo json_encode(array('error' => __('許可されていないオリジンです。', 'petanco-to-flamingo')));
                 exit;
             }
 

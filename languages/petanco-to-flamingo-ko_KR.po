@@ -1,0 +1,173 @@
+# Korean translation for Petanco to Flamingo
+# Copyright (C) 2024-2026 Petanco
+# This file is distributed under the same license as the Petanco to Flamingo plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Petanco to Flamingo 1.2.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-03-09 00:00+0900\n"
+"PO-Revision-Date: 2026-03-09 00:00+0900\n"
+"Last-Translator: Petanco <info@petanco.net>\n"
+"Language-Team: Korean\n"
+"Language: ko_KR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+msgid "Petanco to Flamingo"
+msgstr "Petanco to Flamingo"
+
+msgid "このプラグインはSSL環境でのみ使用できます。プラグインを有効化するには、SSLを有効にしてください。"
+msgstr "이 플러그인은 SSL 환경에서만 사용할 수 있습니다. 플러그인을 활성화하려면 SSL을 활성화해 주세요."
+
+msgid "プラグイン有効化エラー"
+msgstr "플러그인 활성화 오류"
+
+#, php-format
+msgid "フラミンゴが正常に検出されました. バージョン: %s"
+msgstr "Flamingo가 정상적으로 감지되었습니다. 버전: %s"
+
+msgid "Petanco to Flamingo プラグインは SSL 環境で動作するように設計されていますが、現在 SSL が検出されないか有効になっていません。プラグインが正しく機能しない可能性があります。サイトの SSL 設定を確認してください。"
+msgstr "Petanco to Flamingo 플러그인은 SSL 환경에서 작동하도록 설계되었지만, 현재 SSL이 감지되지 않거나 활성화되지 않았습니다. 플러그인이 제대로 작동하지 않을 수 있습니다. 사이트의 SSL 설정을 확인해 주세요."
+
+msgid "Petanco to Flamingoを使用するには、Flamingoプラグインをインストールし、有効化する必要があります。"
+msgstr "Petanco to Flamingo를 사용하려면 Flamingo 플러그인을 설치하고 활성화해야 합니다."
+
+msgid "Petanco to Flamingoは正常にアクティベートされ、Flamingoが検出されました。"
+msgstr "Petanco to Flamingo가 성공적으로 활성화되었으며, Flamingo가 감지되었습니다."
+
+msgid "入力データが無効です。"
+msgstr "입력 데이터가 유효하지 않습니다."
+
+msgid "応募が正常に完了しました。"
+msgstr "응모가 정상적으로 완료되었습니다."
+
+msgid "送信の保存に失敗しました。"
+msgstr "전송 저장에 실패했습니다."
+
+#, php-format
+msgid "%sは必須です。"
+msgstr "%s은(는) 필수입니다."
+
+msgid "有効なメールアドレスを入力してください。"
+msgstr "유효한 이메일 주소를 입력해 주세요."
+
+msgid "Petanco連携設定"
+msgstr "Petanco 연동 설정"
+
+msgid "保存"
+msgstr "저장"
+
+msgid "設定"
+msgstr "설정"
+
+msgid "APIエンドポイントの有効化"
+msgstr "API 엔드포인트 활성화"
+
+msgid "シークレットキー"
+msgstr "시크릿 키"
+
+msgid "レート制限"
+msgstr "요청 제한"
+
+msgid "ダウンロード"
+msgstr "다운로드"
+
+msgid "バージョンチェック"
+msgstr "버전 확인"
+
+msgid "プラグインのダウンロード"
+msgstr "플러그인 다운로드"
+
+msgid "Petanco連携の全般的な設定"
+msgstr "Petanco 연동 일반 설정"
+
+msgid "REST API エンドポイントを有効にします。"
+msgstr "REST API 엔드포인트를 활성화합니다."
+
+msgid "エンドポイントURL:"
+msgstr "엔드포인트 URL:"
+
+msgid "URLをコピー"
+msgstr "URL 복사"
+
+msgid "コピーしました！"
+msgstr "복사되었습니다!"
+
+msgid "コピーしてPetanco側に設定してください。"
+msgstr "복사하여 Petanco 측에 설정해 주세요."
+
+msgid "最新バージョンのプラグインをダウンロードします。"
+msgstr "최신 버전의 플러그인을 다운로드합니다."
+
+msgid "注意: ダウンロード後、既存のプラグインを削除し、新しいバージョンをアップロードしてください。"
+msgstr "주의: 다운로드 후 기존 플러그인을 삭제하고 새 버전을 업로드해 주세요."
+
+msgid "Petanco側で発行したシークレットキーを入力してください。"
+msgstr "Petanco에서 발급한 시크릿 키를 입력해 주세요."
+
+msgid "1時間あたりの最大応募可能数を設定してください。デフォルト値は300です。"
+msgstr "시간당 최대 응모 가능 수를 설정해 주세요. 기본값은 300입니다."
+
+msgid "現在のプラグインバージョン:"
+msgstr "현재 플러그인 버전:"
+
+msgid "バージョンチェックはまだ実行されていません。"
+msgstr "버전 확인이 아직 실행되지 않았습니다."
+
+msgid "前回のバージョンチェックでエラーが発生しました。"
+msgstr "이전 버전 확인에서 오류가 발생했습니다."
+
+#, php-format
+msgid "最終バージョンチェック: %s"
+msgstr "마지막 버전 확인: %s"
+
+msgid "最新バージョン:"
+msgstr "최신 버전:"
+
+msgid "新しいバージョンが利用可能です。"
+msgstr "새 버전을 사용할 수 있습니다."
+
+msgid "最新バージョンをダウンロード"
+msgstr "최신 버전 다운로드"
+
+msgid "プラグインは最新です。"
+msgstr "플러그인이 최신 상태입니다."
+
+msgid "最新バージョン情報は利用できません。"
+msgstr "최신 버전 정보를 사용할 수 없습니다."
+
+msgid "今すぐチェック"
+msgstr "지금 확인"
+
+#, php-format
+msgid "次回のチェックは %s 以降に可能です。"
+msgstr "다음 확인은 %s 이후에 가능합니다."
+
+msgid "チェック中..."
+msgstr "확인 중..."
+
+msgid "バージョンチェックが完了しました。ページをリロードしてください。"
+msgstr "버전 확인이 완료되었습니다. 페이지를 새로고침해 주세요."
+
+msgid "エラーが発生しました。もう一度お試しください。"
+msgstr "오류가 발생했습니다. 다시 시도해 주세요."
+
+msgid "バージョンチェック中にエラーが発生しました。"
+msgstr "버전 확인 중 오류가 발생했습니다."
+
+msgid "最新バージョン情報の取得に失敗しました。"
+msgstr "최신 버전 정보를 가져오는 데 실패했습니다."
+
+msgid "有効なUser-Agentが必要です。"
+msgstr "유효한 User-Agent가 필요합니다."
+
+msgid "アクセスが拒否されました。"
+msgstr "접근이 거부되었습니다."
+
+msgid "レート制限を超えました。しばらくしてからもう一度お試しください。"
+msgstr "요청 제한을 초과했습니다. 잠시 후 다시 시도해 주세요."
+
+msgid "許可されていないオリジンです。"
+msgstr "허용되지 않은 오리진입니다."
