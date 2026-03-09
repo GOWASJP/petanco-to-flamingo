@@ -527,20 +527,6 @@ function petanco_api_settings_init()
 }
 add_action('admin_init', 'petanco_api_settings_init');
 
-// CORS設定処理は翻訳関数を使わない形式に変更
-function petanco_api_setup_cors()
-{
-    remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
-    add_filter('rest_pre_serve_request', 'petanco_api_cors_handler', 20);
-}
-add_action('rest_api_init', 'petanco_api_setup_cors');
-
-function petanco_api_cors_handler($value)
-{
-    $current_route = $GLOBALS['wp']->query_vars['rest_route'];
-    petanco_api_debug_log_early("checkStart $current_route");
-    // 以下、元のコードと同様...
-}
 
 /**
  * 設定セクションのコールバック
@@ -962,41 +948,35 @@ function petanco_api_check_permission($request)
 add_action('rest_api_init', function () {
     remove_filter('rest_pre_serve_request', 'rest_send_cors_headers');
     add_filter('rest_pre_serve_request', function ($value) {
-        $current_route = $GLOBALS['wp']->query_vars['rest_route'];
-        petanco_api_debug_log_early("checkStart $current_route", 'petanco-to-flamingo');
-        // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
+        $current_route = $GLOBALS['wp']->query_vars['rest_route'] ?? '';
+
+        // petanco-api/v1/submit エンドポイントに対してのみ厳格なCORS設定を適用
         if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
             $origin = get_http_origin();
             $allowed_origins = array('https://petanco.io', 'https://petanco.net', 'https://admin.petanco.net');
 
-            petanco_api_debug_log_early("受信したオリジン: " . ($origin ? $origin : "null"), 'petanco-to-flamingo');
-
             if ($origin && in_array($origin, $allowed_origins, true)) {
-                // ブラウザからの許可されたOrigin → CORSヘッダー設定
                 header("Access-Control-Allow-Origin: $origin");
                 header('Access-Control-Allow-Methods: POST, OPTIONS');
                 header('Access-Control-Allow-Headers: X-Petanco-API-Key, Content-Type, User-Agent');
                 header('Access-Control-Allow-Credentials: true');
-                petanco_api_debug_log_early("許可されたオリジンに設定されたCORSヘッダー", 'petanco-to-flamingo');
             } elseif (!$origin) {
                 // サーバー間通信（Originなし）→ APIキー認証済みなので通す
-                petanco_api_debug_log_early("サーバー間通信: Originヘッダーなし、APIキー認証で許可", 'petanco-to-flamingo');
             } else {
-                // 不正なOrigin → 拒否
-                petanco_api_debug_log_early("リクエストが拒否されました: 不正なOrigin: " . $origin, 'petanco-to-flamingo');
                 status_header(403);
                 echo json_encode(array('error' => __('許可されていないオリジンです。', 'petanco-to-flamingo')));
                 exit;
             }
 
-            // OPTIONSリクエスト（プリフライトリクエスト）の処理
             if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
                 status_header(200);
                 exit;
             }
+        } else {
+            // petanco-api 以外のルートはデフォルトのCORS動作を適用
+            rest_send_cors_headers($value);
         }
 
         return $value;
     }, 20);
 });
-petanco_api_debug_log_early('厳格なCORS設定が適用されました。');
