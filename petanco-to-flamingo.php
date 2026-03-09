@@ -967,7 +967,7 @@ add_action('rest_api_init', function () {
         // petanco-api/v1/submit エンドポイントに対してのみCORS設定を適用
         if (strpos($current_route, '/petanco-api/v1/submit') === 0) {
             $origin = get_http_origin();
-            $allowed_origins = array('https://petanco.io', 'https://petanco.net');
+            $allowed_origins = array('https://petanco.io', 'https://petanco.net', 'https://admin.petanco.net');
 
             petanco_api_debug_log_early("受信したオリジン: " . ($origin ? $origin : "null"), 'petanco-to-flamingo');
 
